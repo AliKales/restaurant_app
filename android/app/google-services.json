@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "812294605577",
+    "project_id": "restaurant-app-99f29",
+    "storage_bucket": "restaurant-app-99f29.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812294605577:android:37fdda161da7e5ebeb61d8",
+        "android_client_info": {
+          "package_name": "com.caroby.caroby_restaurant_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "812294605577-4javcf3lbhp0jdk2vjlhhgbv1lufa1g6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJYp406rmE_0yU-u0IyXEbXsQimYAPScU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "812294605577-4javcf3lbhp0jdk2vjlhhgbv1lufa1g6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

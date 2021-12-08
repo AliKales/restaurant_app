@@ -9,6 +9,7 @@ import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/admin_page.dart';
+import 'package:restaurant_app/pages/Cashier%20Pages/cashier_page.dart';
 import 'package:restaurant_app/pages/Chef%20Pages/chef_page.dart';
 import 'package:restaurant_app/pages/select_restaurant_page.dart';
 import 'package:restaurant_app/pages/Staff%20Pages/staff_page.dart';
@@ -29,7 +30,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
 
   Restaurant? restaurant;
 
-  bool progress1=false;
+  bool progress1 = false;
 
   @override
   void initState() {
@@ -78,7 +79,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
               if (restaurant == null) {
                 return;
               } else if (restaurant!.password == "admin-code3152") {
-                Funcs().navigatorPushReplacement(context, const SelectRestaurantPage());
+                Funcs().navigatorPushReplacement(
+                    context, const SelectRestaurantPage());
               } else {
                 await showGeneralDialog(
                   context: context,
@@ -187,6 +189,29 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     );
   }
 
+  List persons = [
+    {
+      "text": "Staff",
+      "icon": Icons.person,
+      "page": const StaffPage(),
+    },
+    {
+      "text": "Chef",
+      "icon": Icons.fastfood,
+      "page": const ChefPage(),
+    },
+    {
+      "text": "Admin",
+      "icon": Icons.admin_panel_settings_rounded,
+      "page": const AdminPage(),
+    },
+    {
+      "text": "Cashier",
+      "icon": Icons.attach_money_rounded,
+      "page": const CashierPage(),
+    },
+  ];
+
   Widget body() {
     if (FirebaseAuth.instance.currentUser!.emailVerified) {
       return Center(
@@ -196,22 +221,26 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             end: Offset.zero,
           ).animate(_animationController!),
           child: FadeTransition(
-            opacity: _animationController!,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                widgetContainerForPerson("Staff", Icons.person, () {
-                  Funcs().navigatorPushReplacement(context, const StaffPage());
-                }),
-                widgetContainerForPerson(
-                    "Chef", Icons.fastfood, () {Funcs().navigatorPushReplacement(context, const ChefPage());}),
-                widgetContainerForPerson(
-                    "Admin", Icons.admin_panel_settings_rounded, () {
-                  Funcs().navigatorPushReplacement(context, const AdminPage());
-                }),
-              ],
-            ),
-          ),
+              opacity: _animationController!,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      widgetContainerForPerson(persons[0]),
+                      widgetContainerForPerson(persons[1]),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      widgetContainerForPerson(persons[3]),
+                      widgetContainerForPerson(persons[2]),
+                    ],
+                  )
+                ],
+              )),
         ),
       );
     } else {
@@ -233,7 +262,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
               text: "I did",
               func: () async {
                 setState(() {
-                  progress1=true;
+                  progress1 = true;
                 });
                 await FirebaseAuth.instance.currentUser!.reload();
                 if (!FirebaseAuth.instance.currentUser!.emailVerified) {
@@ -241,7 +270,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                       context, "Please verify your e-mail first!");
                 }
                 setState(() {
-                  progress1=false;
+                  progress1 = false;
                 });
               },
             )
@@ -251,10 +280,11 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     }
   }
 
-  dynamic widgetContainerForPerson(
-      String text, IconData icon, Function() function) {
+  dynamic widgetContainerForPerson(Map map) {
     return InkWell(
-      onTap: function,
+      onTap: () {
+        Funcs().navigatorPushReplacement(context, map['page']);
+      },
       child: Container(
         height: SizeConfig.safeBlockHorizontal! * 30,
         width: SizeConfig.safeBlockHorizontal! * 30,
@@ -267,7 +297,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
               child: FittedBox(
                 fit: BoxFit.contain,
                 child: Icon(
-                  icon,
+                  map['icon'],
                   color: Colors.white,
                 ),
               ),
@@ -275,7 +305,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
-                text,
+                map['text'],
                 maxLines: 1,
                 overflow: TextOverflow.fade,
                 softWrap: false,

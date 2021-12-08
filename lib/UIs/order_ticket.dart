@@ -21,7 +21,8 @@ class OrderTicket extends StatefulWidget {
       this.add,
       required this.inkWellOnTap,
       this.funcDelete,
-      this.funcOrder})
+      this.funcOrder,
+      this.buttonText="ADD"})
       : super(key: key);
 
   final double price;
@@ -33,6 +34,8 @@ class OrderTicket extends StatefulWidget {
   final Function(int index)? inkWellOnTap;
   final Function()? funcDelete;
   final Function()? funcOrder;
+  ///* [buttonText] is for either 'ADD' or 'UPDATE' the ticket
+  final String buttonText;
 
   static var formatCurrency = NumberFormat.simpleCurrency();
 
@@ -84,6 +87,7 @@ class _OrderTicketState extends State<OrderTicket> {
           price: widget.price,
           add: widget.add,
           tECID: widget.tECID,
+          buttonText: widget.buttonText,
         ),
       ),
     );
@@ -99,7 +103,7 @@ class ChildOrderTicket extends StatelessWidget {
       this.noTouch = false,
       this.tECID,
       this.add,
-      required this.inkWellOnTap, this.shrinkWrap=false,
+      required this.inkWellOnTap, this.shrinkWrap=false,this.buttonText = "ADD"
       })
       : super(key: key);
 
@@ -111,6 +115,7 @@ class ChildOrderTicket extends StatelessWidget {
   final Function()? add;
   final Function(int index)? inkWellOnTap;
   final bool shrinkWrap;
+  final String buttonText;
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +147,7 @@ class ChildOrderTicket extends StatelessWidget {
                   child: CustomGradientButton(
                     context: context,
                     loading: progress2,
-                    text: "ADD",
+                    text: buttonText,
                     func: add ?? () {},
                   ),
                 ),

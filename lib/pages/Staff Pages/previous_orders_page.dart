@@ -9,6 +9,7 @@ import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/order_ticket.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Database.dart';
+import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/food.dart';
 import 'package:restaurant_app/models/order.dart';
@@ -56,7 +57,7 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
         progress1 = false;
       });
     } else {
-      Navigator.pop(context,orders);
+      Navigator.pop(context, orders);
     }
   }
 
@@ -65,6 +66,7 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
     return WillPopScope(
       onWillPop: () async => quit(),
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppbarForPersons(
           functionForLeadingIcon: () => quit(),
           isPushed: true,
@@ -88,7 +90,29 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
                             (index) => Food.fromJson(
                                 orders[selectedOrder].foods![index])),
                         inkWellOnTap: (i) {},
-                        noTouch: true,
+                        buttonText: "UPDATE",
+                        add: () async {
+                          if (orders[selectedOrder].id != tECID.text) {
+                            SimpleUIs().showProgressIndicator(context);
+                            bool boolen1 = await Firestore.updateOrder(
+                                context: context,
+                                databaseReference:
+                                    orders[selectedOrder].databaseReference!,
+                                id: tECID.text);
+                            bool boolen2 = await Database().updateOrder(
+                                context,
+                                orders[selectedOrder].databaseReference!,
+                                tECID.text);
+                            if (boolen1 && boolen2) {
+                              setState(() {
+                                orders[selectedOrder].id = tECID.text.trim();
+                                orders[selectedOrder].id =
+                                    tECID.text.trim().replaceAll(" ", "");
+                              });
+                            }
+                            Navigator.pop(context);
+                          }
+                        },
                       ),
                     ),
                   )
@@ -204,8 +228,9 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
     SimpleUIs().showProgressIndicator(context);
     bool boolen =
         await Database().deleteOrder(context, orders[index].databaseReference!);
+    bool boolen2 = await Firestore.deleteOrder(context: context, databaseReference:  orders[index].databaseReference!);
     Navigator.pop(context);
-    if (boolen) {
+    if (boolen&&boolen2) {
       orders.removeAt(index);
       print(orders);
       box.put("orders", orders);

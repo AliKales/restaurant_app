@@ -32,7 +32,7 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
   TextEditingController tECPassword = TextEditingController();
   TextEditingController tECRole = TextEditingController();
 
-  List roles = ["Select a role", "Staff", "Chef"];
+  List roles = ["Select a role", "Staff", "Chef","Cashier"];
   int selectedRole = 0;
 
   File? photo;

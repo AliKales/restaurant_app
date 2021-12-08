@@ -32,7 +32,27 @@ class Database {
           .child("orders")
           .child(databaseReference)
           .remove();
-          Funcs().showSnackBar(context, "Deleted!");
+      Funcs().showSnackBar(context, "Deleted!");
+      return true;
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR!");
+      return false;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return false;
+    }
+  }
+
+  Future<bool> updateOrder(context, String databaseReference, String id) async {
+    try {
+      await FirebaseDatabase(
+              databaseURL:
+                  "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+          .reference()
+          .child("orders")
+          .child(databaseReference)
+          .update({'id': id.trim(), 'idSearch': id.trim().replaceAll(" ", "")});
+      Funcs().showSnackBar(context, "Updated!");
       return true;
     } on FirebaseException {
       Funcs().showSnackBar(context, "ERROR!");

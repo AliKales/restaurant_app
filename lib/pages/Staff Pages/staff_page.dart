@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:restaurant_app/UIs/appbar_persons.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/custom_textfield.dart';
+import 'package:restaurant_app/UIs/login_page.dart';
 import 'package:restaurant_app/UIs/order_ticket.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
@@ -161,57 +162,31 @@ class _StaffPageState extends State<StaffPage> {
   body() {
     //has not logged in yet as Staff
     if (personnel == null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        child: Column(
-          children: [
-            SizedBox(
-              height: SizeConfig.safeBlockVertical! * 20,
-            ),
-            //username
-            CustomTextField(
-                textEditingController: tECUsername,
-                text: "Staff Username",
-                iconData: Icons.person),
-            SizedBox(
-              height: SizeConfig.safeBlockVertical! * 3,
-            ),
-            //password
-            CustomTextField(
-              textEditingController: tECPassword,
-              text: "Staff Password",
-              iconData: Icons.lock_outline,
-            ),
-            SizedBox(
-              height: SizeConfig.safeBlockVertical! * 6,
-            ),
-            // Log in
-            CustomGradientButton(
-              context: context,
-              text: "LOG IN",
-              loading: progress1,
-              func: () async {
-                setState(() {
-                  progress1 = true;
-                });
-                FocusScope.of(context).unfocus();
-                await Firestore.logInStaff(
-                        context: context,
-                        username: tECUsername.text,
-                        password: tECPassword.text)
-                    .then((value) {
-                  if (value != null) {
-                    personnel = value;
-                    getLists();
-                  }
-                });
-                setState(() {
-                  progress1 = false;
-                });
-              },
-            )
-          ],
-        ),
+      return LoginPage(
+        tECUsername: tECUsername,
+        tECPassword: tECPassword,
+        context: context,
+        progress1: progress1,
+        function: () async {
+          setState(() {
+            progress1 = true;
+          });
+          FocusScope.of(context).unfocus();
+          await Firestore.logInStaff(
+                  context: context,
+                  username: tECUsername.text,
+                  password: tECPassword.text,
+                  role: "Staff")
+              .then((value) {
+            if (value != null) {
+              personnel = value;
+              getLists();
+            }
+          });
+          setState(() {
+            progress1 = false;
+          });
+        },
       );
     } else {
       return Align(

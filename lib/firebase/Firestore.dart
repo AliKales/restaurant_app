@@ -199,14 +199,15 @@ class Firestore {
   static Future<Personnel?> logInStaff(
       {required final context,
       required final String username,
-      required final String password}) async {
+      required final String password,
+      required final String role}) async {
     try {
       var staff = await FirebaseFirestore.instance
           .collection("restaurants")
           .doc(Auth().getEMail())
           .collection("personnels")
           .limit(1)
-          .where('role', isEqualTo: "Staff")
+          .where('role', isEqualTo: role)
           .where('username', isEqualTo: username)
           .where('password', isEqualTo: password)
           .get();
@@ -300,9 +301,105 @@ class Firestore {
           .collection("restaurants")
           .doc(Auth().getEMail())
           .collection("orders")
-          .doc()
+          .doc(order.databaseReference)
           .set(order.toMap());
       Funcs().showSnackBar(context, "Order has been sent");
+      return true;
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    }
+  }
+
+  static Future<bool> updateOrder({
+    required context,
+    required String databaseReference,
+    required String id,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .collection("orders")
+          .doc(databaseReference)
+          .update({'id': id.trim(), 'idSearch': id.trim().replaceAll(" ", "")});
+      return true;
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    }
+  }
+
+  static Future<bool> deleteOrder({
+    required context,
+    required String databaseReference,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .collection("orders")
+          .doc(databaseReference)
+          .delete();
+      return true;
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    }
+  }
+
+  static Future<Order?> getOrder({
+    required context,
+    required String idSearch,
+  }) async {
+    try {
+      var value = await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .collection("orders")
+          .where('idSearch', isGreaterThanOrEqualTo: idSearch)
+          .where('idSearch', isLessThanOrEqualTo: idSearch + "\uF7FF")
+          .limit(1)
+          .get();
+      if (value.docs.isNotEmpty) {
+        Funcs().showSnackBar(context, "Searched");
+        return Order.fromJson(value.docs[0].data());
+      } else {
+        Funcs().showSnackBar(context, "No Order With This ID!!!");
+        return null;
+      }
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return null;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return null;
+    }
+  }
+
+  static Future<bool> payOrder({
+    required context,
+    required Order order,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .collection("payments")
+          .doc(DateTime.now().month.toString())
+          .update({
+        "payments": FieldValue.arrayUnion([order.toMap()]),
+      });
+      Funcs().showSnackBar(context, "PAYED");
       return true;
     } on FirebaseException {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");

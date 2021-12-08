@@ -8,6 +8,13 @@ import 'package:restaurant_app/models/food.dart';
 
 import 'package:restaurant_app/models/order.dart';
 
+import '../../UIs/custom_gradient_button.dart';
+import '../../UIs/custom_textfield.dart';
+import '../../UIs/login_page.dart';
+import '../../firebase/Firestore.dart';
+import '../../models/personnel.dart';
+import '../../size.dart';
+
 class ChefPage extends StatefulWidget {
   const ChefPage({
     Key? key,
@@ -18,13 +25,19 @@ class ChefPage extends StatefulWidget {
 }
 
 class _ChefPageState extends State<ChefPage> {
-  List<SliverList> innerLists = [];
   List<Order> orders = [];
+  final _innerList = <WidgetOrderTicket>[];
+
+  Personnel? personnel;
+
+  TextEditingController tECPassword = TextEditingController();
+  TextEditingController tECUsername = TextEditingController();
+
+  bool progress1 = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) => listeners());
   }
 
   listeners() {
@@ -35,63 +48,89 @@ class _ChefPageState extends State<ChefPage> {
         .child("orders")
         .onChildAdded
         .listen((event) {
-      orders.add(Order.fromJson(event.snapshot.value));
-      loadWidgets();
+      final order = Order.fromJson(event.snapshot.value);
+      orders.add(order);
+
+      _innerList.add(WidgetOrderTicket(
+        order: order,
+        funcDone: () async {
+          doneOrder(order.databaseReference);
+        },
+      ));
+
+      setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppbarForPersons(
         text: "Chef",
       ),
-      body: CustomScrollView(slivers: innerLists),
+      body: body(),
     );
+  }
+
+  body() {
+    if (personnel != null) {
+      return widgetLoggedIn();
+    } else {
+      return LoginPage(
+        tECUsername: tECUsername,
+        tECPassword: tECPassword,
+        context: context,
+        progress1: progress1,
+        function: () async {
+          setState(() {
+            progress1 = true;
+          });
+          FocusScope.of(context).unfocus();
+          await Firestore.logInStaff(
+                  context: context,
+                  username: tECUsername.text,
+                  password: tECPassword.text,
+                  role: "Chef")
+              .then((value) {
+            if (value != null) {
+              personnel = value;
+              listeners();
+            }
+          });
+          setState(() {
+            progress1 = false;
+          });
+        },
+      );
+    }
+  }
+
+  CustomScrollView widgetLoggedIn() {
+    return CustomScrollView(slivers: [
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (BuildContext context, int index) => _innerList[index],
+          childCount: orders.length,
+        ),
+      ),
+    ]);
   }
 
   //FUNCTİONS --------------
 
-  void loadWidgets() {
-    var numLists = orders.length ~/ 2;
-    if (orders.length == 1) {
-      numLists = 1;
-    }
-    var numberOfItemsPerList = orders.length;
-    var counter = 0;
-    for (int i = 0; i < numLists; i++) {
-      final _innerList = <WidgetOrderTicket>[];
-      for (int j = 0; j < numberOfItemsPerList; j++) {
-        _innerList.add(WidgetOrderTicket(
-          order: orders[counter],
-          funcDone: () async {
-            doneOrder(counter);
-          },
-        ));
-        counter++;
-      }
-      innerLists.add(
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) => _innerList[index],
-            childCount: numberOfItemsPerList,
-          ),
-        ),
-      );
-    }
-    setState(() {});
-  }
-
-  Future doneOrder(counter) async {
-    bool boolean = await Database()
-        .deleteOrder(context, orders[counter - 1].databaseReference!);
+  Future doneOrder(databaseReference) async {
+    bool boolean = await Database().deleteOrder(context, databaseReference);
     if (boolean) {
-      setState(() {
-        orders.removeAt(counter - 1);
-      });
+      int index = orders.indexWhere(
+          (element) => element.databaseReference == databaseReference);
+      orders.removeAt(index);
+      _innerList.removeAt(index);
+      setState(() {});
     }
   }
 }
+
 
 @immutable
 class WidgetOrderTicket extends StatefulWidget {

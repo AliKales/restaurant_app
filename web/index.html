@@ -31,6 +31,33 @@
 
   <title>restaurant_app</title>
   <link rel="manifest" href="manifest.json">
+
+
+  <script  src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+
+  <script  src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+  <script  src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+  <script  src="https://www.gstatic.com/firebasejs/8.6.1/cloud_firestore.js"></script>
+  <script  src="https://www.gstatic.com/firebasejs/8.6.1/firebase_storage.js"></script>
+  <script  src="https://www.gstatic.com/firebasejs/8.6.1/firebase_database.js"></script>
+
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyDCXsc2fW4saOfOPHXN5eO7wuschKbfnkg",
+      authDomain: "restaurant-app-99f29.firebaseapp.com",
+      databaseURL: "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "restaurant-app-99f29",
+      storageBucket: "restaurant-app-99f29.appspot.com",
+      messagingSenderId: "812294605577",
+      appId: "1:812294605577:web:72cf30e319d56d60eb61d8",
+      measurementId: "${config.measurementId}"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+
+  </script>
 </head>
 <body>
   <!-- This script installs service_worker.js to provide PWA functionality to
@@ -100,5 +127,6 @@
       loadMainDartJs();
     }
   </script>
+
 </body>
 </html>

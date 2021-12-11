@@ -122,6 +122,7 @@ class _CashierPageState extends State<CashierPage> {
                                 SimpleUIs().showProgressIndicator(context);
                                 await Firestore.deleteOrder(
                                         context: context,
+                                        showMessage: true,
                                         databaseReference:
                                             order!.databaseReference!)
                                     .then((value) {

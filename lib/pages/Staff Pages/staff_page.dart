@@ -295,13 +295,14 @@ class _StaffPageState extends State<StaffPage> {
     if (value != "") {
       order!.databaseReference = value;
     } else {
+      Navigator.pop(context);
       return;
     }
     bool boolean = await Firestore.setOrder(context: context, order: order!);
     if (!boolean) {
+      Navigator.pop(context);
       return;
     } else {
-      Navigator.pop(context);
       orders.insert(0, order);
       box.put("orders", orders);
       setState(() {
@@ -310,6 +311,7 @@ class _StaffPageState extends State<StaffPage> {
         tECID.clear();
       });
     }
+    Navigator.pop(context);
   }
 
   getLists() async {

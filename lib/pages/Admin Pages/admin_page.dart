@@ -16,6 +16,7 @@ import 'package:restaurant_app/pages/Admin%20Pages/food_categories_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/food_menu_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/new_personnel_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/add_new_personal.dart';
+import 'package:restaurant_app/pages/Admin%20Pages/statisticks_page.dart';
 import 'package:restaurant_app/pages/payment_page.dart';
 import 'package:restaurant_app/pages/personal_manager_page.dart';
 import 'package:restaurant_app/pages/remove_update_page.dart';
@@ -136,26 +137,12 @@ class _AdminPageState extends State<AdminPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   widgetRowOnDrawer(0, "PERSONNELS"),
-                  SizedBox(
-                    height: SizeConfig().setHight(2),
-                  ),
-                  Divider(
-                    color: Colors.grey[350],
-                  ),
-                  SizedBox(
-                    height: SizeConfig().setHight(2),
-                  ),
+                  widgetSperaterForDrawer(),
                   widgetRowOnDrawer(1, "FOOD MENU"),
-                  SizedBox(
-                    height: SizeConfig().setHight(2),
-                  ),
-                  Divider(
-                    color: Colors.grey[350],
-                  ),
-                  SizedBox(
-                    height: SizeConfig().setHight(2),
-                  ),
-                  widgetRowOnDrawer(2, "FOOD CATEGORIES")
+                  widgetSperaterForDrawer(),
+                  widgetRowOnDrawer(2, "FOOD CATEGORIES"),
+                  widgetSperaterForDrawer(),
+                  widgetRowOnDrawer(3, "STATISTICKS")
                 ],
               ),
             ),
@@ -170,6 +157,22 @@ class _AdminPageState extends State<AdminPage> {
         },
         child: body(),
       ),
+    );
+  }
+
+  Widget widgetSperaterForDrawer() {
+    return Column(
+      children: [
+        SizedBox(
+          height: SizeConfig().setHight(2),
+        ),
+        Divider(
+          color: Colors.grey[350],
+        ),
+        SizedBox(
+          height: SizeConfig().setHight(2),
+        ),
+      ],
     );
   }
 
@@ -221,12 +224,13 @@ class _AdminPageState extends State<AdminPage> {
           restaurant: restaurant!,
           logedIn: () {
             setState(() {
-              progress1=true;
+              progress1 = true;
             });
           },
         ),
         FoodMenuPage(restaurant: restaurant!),
         FoodCategoriesPage(restaurant: restaurant!),
+        StatisticksPage(restaurant: restaurant!)
       ],
     );
   }

@@ -78,7 +78,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
                   child: SimpleUIs().progressIndicator(),
                 );
               } else {
-                return body();
+                return SingleChildScrollView(child: body());
               }
             }
           },

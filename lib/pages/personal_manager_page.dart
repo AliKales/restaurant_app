@@ -185,7 +185,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
           ),
         ],
       ),
-      body: body(),
+      body: FittedBox(fit: BoxFit.scaleDown,child: body()),
     );
   }
 

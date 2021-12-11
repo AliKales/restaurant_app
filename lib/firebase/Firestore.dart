@@ -305,10 +305,12 @@ class Firestore {
           .set(order.toMap());
       Funcs().showSnackBar(context, "Order has been sent");
       return true;
-    } on FirebaseException {
+    } on FirebaseException catch (e) {
+      print(e);
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return false;
     } catch (e) {
+      print(e);
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return false;
     }
@@ -336,10 +338,10 @@ class Firestore {
     }
   }
 
-  static Future<bool> deleteOrder({
-    required context,
-    required String databaseReference,
-  }) async {
+  static Future<bool> deleteOrder(
+      {required context,
+      required String databaseReference,
+      bool showMessage = false}) async {
     try {
       await FirebaseFirestore.instance
           .collection("restaurants")
@@ -347,6 +349,9 @@ class Firestore {
           .collection("orders")
           .doc(databaseReference)
           .delete();
+      if (showMessage) {
+        Funcs().showSnackBar(context, "Deleted");
+      }
       return true;
     } on FirebaseException {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
@@ -395,18 +400,44 @@ class Firestore {
           .collection("restaurants")
           .doc(Auth().getEMail())
           .collection("payments")
-          .doc(DateTime.now().month.toString())
+          .doc("11") //DateTime.now().month.toString())
           .update({
         "payments": FieldValue.arrayUnion([order.toMap()]),
       });
       Funcs().showSnackBar(context, "PAYED");
       return true;
-    } on FirebaseException {
+    } on FirebaseException catch (e) {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return false;
     } catch (e) {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return false;
+    }
+  }
+
+  static Future<List<Map>?> getStatisticks({
+    required context,
+  }) async {
+    try {
+      var value = await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .collection("payments")
+          .get();
+      if (value.docs.isNotEmpty) {
+        Funcs().showSnackBar(context, "Done");
+        return List.generate(
+            value.docs.length, (index) => value.docs[index].data());
+      } else {
+        return null;
+      }
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return null;
+    } catch (e) {
+      print(e);
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return null;
     }
   }
 }

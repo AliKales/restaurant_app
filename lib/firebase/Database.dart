@@ -14,10 +14,12 @@ class Database {
       order['databaseReference'] = databaseReference.key;
       await databaseReference.set(order);
       return databaseReference.key;
-    } on FirebaseException {
+    } on FirebaseException catch(e){
+      print(e);
       Funcs().showSnackBar(context, "Error! TRY AGAIN");
       return "";
     } catch (e) {
+      print(e);
       Funcs().showSnackBar(context, "Error! TRY AGAIN");
       return "";
     }

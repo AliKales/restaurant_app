@@ -400,9 +400,9 @@ class Firestore {
           .collection("restaurants")
           .doc(Auth().getEMail())
           .collection("payments")
-          .doc("11") //DateTime.now().month.toString())
+          .doc(DateTime.now().year.toString()) //DateTime.now().month.toString()
           .update({
-        "payments": FieldValue.arrayUnion([order.toMap()]),
+        DateTime.now().month.toString(): FieldValue.arrayUnion([order.toMap()]),
       });
       Funcs().showSnackBar(context, "PAYED");
       return true;
@@ -417,25 +417,31 @@ class Firestore {
 
   static Future<List<Map>?> getStatisticks({
     required context,
+    required String year,
   }) async {
+    List<Map> listReturn = [];
     try {
       var value = await FirebaseFirestore.instance
           .collection("restaurants")
           .doc(Auth().getEMail())
           .collection("payments")
+          .doc(year)
           .get();
-      if (value.docs.isNotEmpty) {
+      if (value.exists) {
         Funcs().showSnackBar(context, "Done");
-        return List.generate(
-            value.docs.length, (index) => value.docs[index].data());
+        for (var i = 1; i < 13; i++) {
+          listReturn
+              .add({'month': i, 'payments': value.data()?[i.toString()] ?? []});
+        }
+        return listReturn;
       } else {
+        Funcs().showSnackBar(context, "No Data!");
         return null;
       }
     } on FirebaseException {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return null;
     } catch (e) {
-      print(e);
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return null;
     }

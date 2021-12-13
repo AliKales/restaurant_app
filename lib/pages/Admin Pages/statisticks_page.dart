@@ -133,20 +133,20 @@ class _StatisticksPageState extends State<StatisticksPage> {
                         List.generate(allFoods.length,
                             (index) => allFoods[index]['name']),
                         list2Selected);
-
+                        
                     list2Selected = value;
                     list2SelectedFood = allFoods[value]['name'];
                     list2(value, setState);
                   }),
-                  SfCartesianChart(
+                  SfCartesianChart(                            
                     primaryYAxis:
                         NumericAxis(labelStyle: const TextStyle(color: color4)),
                     primaryXAxis: CategoryAxis(
-                        labelStyle: const TextStyle(color: color4)),
-                    series: <ChartSeries>[
+                        labelStyle: const TextStyle(color: color4),labelPlacement: LabelPlacement.onTicks),
+                    series: <ChartSeries>[                      
                       LineSeries<SalesData, String>(
                         dataSource: salesDatas,
-                        xValueMapper: (SalesData sales, _) => sales.month,
+                        xValueMapper: (SalesData sales, _) => sales.month.substring(0,2),
                         yValueMapper: (SalesData sales, _) => sales.sales,
                         color: color2,
                       )
@@ -166,48 +166,58 @@ class _StatisticksPageState extends State<StatisticksPage> {
       context: context,
       text: "Update",
       func: () async {
-        SimpleUIs().showProgressIndicator(context);
         chartDatas = [];
         charts = [];
         maximum = 0;
         orders = [];
         months = [];
         salesDatas = [];
-        await Firestore.getStatisticks(context: context).then((value) {
-          if (value != null) {
-            for (int i = 0; i < value.length; i++) {
-              var item = value[i];
-              orders.add(item['payments']);
-              months.add(item['month']);
+        int selected = -1;
+        List _list = List<String>.generate(
+            10, (index) => (DateTime.now().year - index).toString());
+        print(_list);
+        selected =
+            await SimpleUIs().showGeneralDialogFunc(context, _list, selected);
+        if (selected != -1) {
+          SimpleUIs().showProgressIndicator(context);
+          await Firestore.getStatisticks(
+                  context: context, year: _list[selected])
+              .then((value) {
+            if (value != null) {
+              for (int i = 0; i < value.length; i++) {
+                var item = value[i];
+                orders.add(item['payments']);
+                months.add(item['month']);
+              }
             }
-          }
-        });
-        for (var anan = 0; anan < orders.length; anan++) {
-          for (var item in orders[anan]) {
-            Order order = Order.fromJson(item);
-            List<Food> listFood = List<Food>.generate(order.foods!.length,
-                (index) => Food.fromJson(order.foods![index]));
-            for (var food in listFood) {
-              int index = allFoods
-                  .indexWhere((element) => element['name'] == food.name);
-              if (index == -1) {
-                allFoods.add({
-                  'name': food.name,
-                  'count': food.count,
-                  'price': double.parse(food.price)
-                });
-              } else {
-                allFoods[index]['count'] =
-                    allFoods[index]['count'] + food.count;
+          });
+          for (var anan = 0; anan < orders.length; anan++) {
+            for (var item in orders[anan]) {
+              Order order = Order.fromJson(item);
+              List<Food> listFood = List<Food>.generate(order.foods!.length,
+                  (index) => Food.fromJson(order.foods![index]));
+              for (var food in listFood) {
+                int index = allFoods
+                    .indexWhere((element) => element['name'] == food.name);
+                if (index == -1) {
+                  allFoods.add({
+                    'name': food.name,
+                    'count': food.count,
+                    'price': double.parse(food.price)
+                  });
+                } else {
+                  allFoods[index]['count'] =
+                      allFoods[index]['count'] + food.count;
 
-                allFoods[index]['price'] =
-                    allFoods[index]['price'] + double.parse(food.price);
+                  allFoods[index]['price'] =
+                      allFoods[index]['price'] + double.parse(food.price);
+                }
               }
             }
           }
+          Navigator.pop(context);
+          setState(() {});
         }
-        Navigator.pop(context);
-        setState(() {});
       },
     );
   }

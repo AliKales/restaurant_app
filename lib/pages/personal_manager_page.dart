@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
@@ -14,6 +13,8 @@ import 'package:restaurant_app/pages/Chef%20Pages/chef_page.dart';
 import 'package:restaurant_app/pages/select_restaurant_page.dart';
 import 'package:restaurant_app/pages/Staff%20Pages/staff_page.dart';
 import 'package:restaurant_app/size.dart';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class PersonelManagerPage extends StatefulWidget {
   const PersonelManagerPage({Key? key}) : super(key: key);
@@ -39,7 +40,6 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     Timer(const Duration(milliseconds: 200),
         () => _animationController!.forward());
     if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      print("Send ");
       //FirebaseAuth.instance.currentUser!.sendEmailVerification();
     }
     super.initState();
@@ -185,8 +185,17 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
           ),
         ],
       ),
-      body: FittedBox(fit: BoxFit.scaleDown,child: body()),
+      body: getBody()
+      
     );
+  }
+
+  getBody(){
+    if (kIsWeb) {
+      return FittedBox(fit: BoxFit.scaleDown, child: body());
+    } else {
+      return body();
+    }
   }
 
   List persons = [

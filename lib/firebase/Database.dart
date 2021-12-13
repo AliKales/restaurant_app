@@ -4,7 +4,7 @@ import 'package:restaurant_app/funcs.dart';
 
 class Database {
   Future<String> sendOrder(context, Map order) async {
-    try {
+    //try {
       DatabaseReference databaseReference = FirebaseDatabase(
               databaseURL:
                   "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
@@ -14,15 +14,15 @@ class Database {
       order['databaseReference'] = databaseReference.key;
       await databaseReference.set(order);
       return databaseReference.key;
-    } on FirebaseException catch(e){
-      print(e);
-      Funcs().showSnackBar(context, "Error! TRY AGAIN");
-      return "";
-    } catch (e) {
-      print(e);
-      Funcs().showSnackBar(context, "Error! TRY AGAIN");
-      return "";
-    }
+    // } on FirebaseException catch(e){
+    //   print(e);
+    //   Funcs().showSnackBar(context, "Error! TRY AGAIN");
+    //   return "";
+    // } catch (e) {
+    //   print(e);
+    //   Funcs().showSnackBar(context, "Error! TRY AGAIN");
+    //   return "";
+    // }
   }
 
   Future<bool> deleteOrder(context, String databaseReference) async {

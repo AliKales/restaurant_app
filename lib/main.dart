@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:restaurant_app/colors.dart';
@@ -7,8 +9,8 @@ import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/select_restaurant_page.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-//kullanıcı rol seçtiğinde şifre sor
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,8 +30,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scrollBehavior:kIsWeb? MyScrollBehavior():null,
         title: 'Flutter Demo',
         theme: ThemeData(scaffoldBackgroundColor: color1),
         home: const SelectRestaurantPage());
   }
+}
+
+class MyScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => { 
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }

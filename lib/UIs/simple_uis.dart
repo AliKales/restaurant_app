@@ -80,7 +80,10 @@ class SimpleUIs {
                         val = selectedItem;
                       },
                       perspective: 0.005,
-                      children: getChildrenForListWheel(context, list),
+                      children: getChildrenForListWheel(
+                        context,
+                        list,
+                      ),
                       physics: const FixedExtentScrollPhysics(),
                     ),
                   ),
@@ -121,12 +124,12 @@ class SimpleUIs {
   }
 
   ///* [getChildrenForListWheel] shouldn't be used from anywhere, it's a specific code for [showGeneralDialogFunc]
-  List<Widget> getChildrenForListWheel(context, list) {
+  List<Widget> getChildrenForListWheel(context, List list) {
     List<Widget> listForWiget = [];
-    for (var item in list) {
+    for (var i = 0; i < list.length; i++) {
       listForWiget.add(Center(
         child: Text(
-          item.toString(),
+          list[i].toString(),
           style: Theme.of(context)
               .textTheme
               .bodyText1!

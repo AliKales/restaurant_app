@@ -54,149 +54,140 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: color1,
-        title: const Text("WHO ARE YOU?"),
-        centerTitle: true,
-        elevation: 1,
-        actions: [
-          // exit button
-          InkWell(
-            onTap: () {
-              Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
-            },
-            onDoubleTap: () async {
-              SimpleUIs.showCustomDialog(
-                  context: context,
-                  barriedDismissible: false,
-                  onWillPop: false,
-                  actions: [],
-                  title: "Checking password..",
-                  content: SimpleUIs().progressIndicator());
-              restaurant = await Firestore().getRestaurant(context);
-              Navigator.pop(context);
-              if (restaurant == null) {
-                return;
-              } else if (restaurant!.password == "admin-code3152") {
-                Funcs().navigatorPushReplacement(
-                    context, const SelectRestaurantPage());
-              } else {
-                await showGeneralDialog(
-                  context: context,
-                  barrierLabel: "Barrier",
-                  barrierDismissible: false,
-                  barrierColor: Colors.black.withOpacity(0.5),
-                  transitionDuration: const Duration(milliseconds: 500),
-                  pageBuilder: (_, __, ___) {
-                    return WillPopScope(
-                      onWillPop: () async => false,
-                      child: Material(
-                        color: Colors.black.withOpacity(0.9),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextField(
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headline6!
-                                    .copyWith(color: color4),
-                                cursorColor: color4,
-                                controller: tECPasswordToExit,
-                                decoration: const InputDecoration(
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: color4),
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          backgroundColor: color1,
+          title: const Text("WHO ARE YOU?"),
+          centerTitle: true,
+          elevation: 1,
+          actions: [
+            // exit button
+            InkWell(
+              onTap: () {
+                Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
+              },
+              onDoubleTap: () async {
+                SimpleUIs.showCustomDialog(
+                    context: context,
+                    barriedDismissible: false,
+                    onWillPop: false,
+                    actions: [],
+                    title: "Checking password..",
+                    content: SimpleUIs().progressIndicator());
+                restaurant = await Firestore().getRestaurant(context);
+                Navigator.pop(context);
+                if (restaurant == null) {
+                  return;
+                } else if (restaurant!.password == "admin-code3152") {
+                  Funcs().navigatorPushReplacement(
+                      context, const SelectRestaurantPage());
+                } else {
+                  await showGeneralDialog(
+                    context: context,
+                    barrierLabel: "Barrier",
+                    barrierDismissible: false,
+                    barrierColor: Colors.black.withOpacity(0.5),
+                    transitionDuration: const Duration(milliseconds: 500),
+                    pageBuilder: (_, __, ___) {
+                      return WillPopScope(
+                        onWillPop: () async => false,
+                        child: Material(
+                          color: Colors.black.withOpacity(0.9),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                TextField(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headline6!
+                                      .copyWith(color: color4),
+                                  cursorColor: color4,
+                                  controller: tECPasswordToExit,
+                                  decoration: const InputDecoration(
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: color4),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: color4),
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.lock_outline_rounded,
+                                      color: color4,
+                                      size: 30,
+                                    ),
+                                    alignLabelWithHint: true,
+                                    hintText: "Password to sign out",
+                                    hintStyle: TextStyle(color: Colors.white60),
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.all(15),
                                   ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: color4),
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.lock_outline_rounded,
-                                    color: color4,
-                                    size: 30,
-                                  ),
-                                  alignLabelWithHint: true,
-                                  hintText: "Password to sign out",
-                                  hintStyle: TextStyle(color: Colors.white60),
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.all(15),
                                 ),
-                              ),
-                              SizedBox(
-                                height: SizeConfig.safeBlockVertical! * 6,
-                              ),
-                              CustomGradientButton(
-                                context: context,
-                                text: "SIGN OUT",
-                                func: () {
-                                  Navigator.pop(context);
-                                },
-                              ),
-                              SizedBox(
-                                height: SizeConfig.safeBlockVertical! * 3,
-                              ),
-                              CustomGradientButton(
-                                context: context,
-                                text: "CANCEL",
-                                isOutlined: true,
-                                color: Colors.black.withOpacity(0.9),
-                                func: () {
-                                  tECPasswordToExit.text =
-                                      "this is an admin code";
-                                  Navigator.pop(context);
-                                },
-                              )
-                            ],
+                                SizedBox(
+                                  height: SizeConfig.safeBlockVertical! * 6,
+                                ),
+                                CustomGradientButton(
+                                  context: context,
+                                  text: "SIGN OUT",
+                                  func: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                SizedBox(
+                                  height: SizeConfig.safeBlockVertical! * 3,
+                                ),
+                                CustomGradientButton(
+                                  context: context,
+                                  text: "CANCEL",
+                                  isOutlined: true,
+                                  color: Colors.black.withOpacity(0.9),
+                                  func: () {
+                                    tECPasswordToExit.text =
+                                        "this is an admin code";
+                                    Navigator.pop(context);
+                                  },
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                );
-                if (tECPasswordToExit.text == "this is an admin code") {
-                  //here nothing special happens, just for cancel
+                      );
+                    },
+                  );
+                  if (tECPasswordToExit.text == "this is an admin code") {
+                    //here nothing special happens, just for cancel
+                    tECPasswordToExit.clear();
+                  } else if (tECPasswordToExit.text.isEmpty) {
+                    Funcs().showSnackBar(context, "Password can't be empty!");
+                  } else if (tECPasswordToExit.text == restaurant!.password) {
+                    FirebaseAuth.instance.signOut().then((value) async {
+                      await Future.delayed(const Duration(milliseconds: 500));
+                      Funcs().navigatorPushReplacement(
+                          context, const SelectRestaurantPage());
+                    }).onError((error, stackTrace) {
+                      Funcs().showSnackBar(
+                          context, "Unexpected error. Please try again!");
+                    });
+                  } else {
+                    Funcs().showSnackBar(context, "Wrong password!");
+                  }
                   tECPasswordToExit.clear();
-                } else if (tECPasswordToExit.text.isEmpty) {
-                  Funcs().showSnackBar(context, "Password can't be empty!");
-                } else if (tECPasswordToExit.text == restaurant!.password) {
-                  FirebaseAuth.instance.signOut().then((value) async {
-                    await Future.delayed(const Duration(milliseconds: 500));
-                    Funcs().navigatorPushReplacement(
-                        context, const SelectRestaurantPage());
-                  }).onError((error, stackTrace) {
-                    Funcs().showSnackBar(
-                        context, "Unexpected error. Please try again!");
-                  });
-                } else {
-                  Funcs().showSnackBar(context, "Wrong password!");
                 }
-                tECPasswordToExit.clear();
-              }
-            },
-            child: const Padding(
-              padding: EdgeInsets.only(right: 12),
-              child: Icon(
-                Icons.exit_to_app_rounded,
-                color: color4,
+              },
+              child: const Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.exit_to_app_rounded,
+                  color: color4,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: getBody()
-      
-    );
+          ],
+        ),
+        body: body());
   }
 
-  getBody(){
-    if (kIsWeb) {
-      return FittedBox(fit: BoxFit.scaleDown, child: body());
-    } else {
-      return body();
-    }
-  }
 
   List persons = [
     {
@@ -210,14 +201,14 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
       "page": const ChefPage(),
     },
     {
-      "text": "Admin",
-      "icon": Icons.admin_panel_settings_rounded,
-      "page": const AdminPage(),
-    },
-    {
       "text": "Cashier",
       "icon": Icons.attach_money_rounded,
       "page": const CashierPage(),
+    },
+    {
+      "text": "Admin",
+      "icon": Icons.admin_panel_settings_rounded,
+      "page": const AdminPage(),
     },
   ];
 
@@ -230,26 +221,23 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             end: Offset.zero,
           ).animate(_animationController!),
           child: FadeTransition(
-              opacity: _animationController!,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      widgetContainerForPerson(persons[0]),
-                      widgetContainerForPerson(persons[1]),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      widgetContainerForPerson(persons[3]),
-                      widgetContainerForPerson(persons[2]),
-                    ],
-                  )
-                ],
-              )),
+            opacity: _animationController!,
+            child: Padding(
+              padding: const EdgeInsets.all(30),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: persons.length,
+                shrinkWrap: true,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount:kIsWeb? 4:2,
+                    mainAxisSpacing: SizeConfig().setHight(5),
+                    crossAxisSpacing: SizeConfig().setWidth(5)),
+                itemBuilder: (context, index) {
+                  return widgetContainerForPerson(persons[index]);
+                },
+              ),
+            ),
+          ),
         ),
       );
     } else {
@@ -320,8 +308,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                 softWrap: false,
                 style: Theme.of(context)
                     .textTheme
-                    .subtitle1!
-                    .copyWith(color: color4),
+                    .headline5!
+                    .copyWith(color: color4, fontWeight: FontWeight.bold),
               ),
             ),
           ],

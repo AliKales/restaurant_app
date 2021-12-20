@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:restaurant_app/UIs/appbar_persons.dart';
+import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Database.dart';
 import 'package:restaurant_app/models/food.dart';
@@ -35,12 +36,33 @@ class _ChefPageState extends State<ChefPage> {
 
   bool progress1 = false;
 
+  String lastDeleted = "";
+
   @override
   void initState() {
     super.initState();
   }
 
   listeners() {
+    FirebaseDatabase(
+            databaseURL:
+                "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+        .reference()
+        .child("orders")
+        .onChildRemoved
+        .listen((event) {
+      int index = orders.indexWhere((element) =>
+          element.databaseReference ==
+          event.snapshot.value['databaseReference']);
+      if (index != -1 &&
+          lastDeleted != event.snapshot.value['databaseReference']) {
+        orders.removeAt(index);
+        _innerList.removeAt(index);
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
     FirebaseDatabase(
             databaseURL:
                 "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
@@ -53,6 +75,18 @@ class _ChefPageState extends State<ChefPage> {
 
       _innerList.add(WidgetOrderTicket(
         order: order,
+        longPress: (note) {
+          SimpleUIs.showCustomDialog(
+              context: context,
+              title: "NOTE:",
+              content: Text(
+                note ?? "",
+                style: Theme.of(context)
+                    .textTheme
+                    .headline6!
+                    .copyWith(color: color4),
+              ));
+        },
         funcDone: () async {
           doneOrder(order.databaseReference);
         },
@@ -66,7 +100,7 @@ class _ChefPageState extends State<ChefPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppbarForPersons(
+      appBar: const AppbarForPersons(
         text: "Chef",
       ),
       body: body(),
@@ -120,6 +154,7 @@ class _ChefPageState extends State<ChefPage> {
   //FUNCTİONS --------------
 
   Future doneOrder(databaseReference) async {
+    lastDeleted = databaseReference;
     bool boolean = await Database().deleteOrder(context, databaseReference);
     if (boolean) {
       int index = orders.indexWhere(
@@ -131,14 +166,17 @@ class _ChefPageState extends State<ChefPage> {
   }
 }
 
-
 @immutable
 class WidgetOrderTicket extends StatefulWidget {
   const WidgetOrderTicket(
-      {Key? key, required this.order, required this.funcDone})
+      {Key? key,
+      required this.order,
+      required this.funcDone,
+      required this.longPress})
       : super(key: key);
   final Order order;
   final Function() funcDone;
+  final Function(String?) longPress;
 
   @override
   State createState() => WidgetOrderTicketState();
@@ -176,7 +214,12 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
               children: [
                 SlidableAction(
                   // An action can be bigger than the others.
-                  onPressed: (context) => widget.funcDone.call(),
+                  onPressed: (context) {
+                    setState(() {
+                      ready = !ready;
+                    });
+                    widget.funcDone.call();
+                  },
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                   icon: Icons.done_all_sharp,
@@ -184,44 +227,55 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
                 ),
               ],
             ),
-      child: Container(
-        margin: const EdgeInsets.all(8),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-            color: ready ? Colors.yellow[700]! : color4,
-            borderRadius: BorderRadius.all(Radius.circular(6))),
-        width: double.maxFinite,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "ID: ${widget.order.id}",
-              style: Theme.of(context).textTheme.headline5,
-            ),
-            Divider(
-              color: Colors.grey[850],
-              thickness: 1,
-            ),
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: widget.order.foods!.length,
-              itemBuilder: (_, index) {
-                var food = Food.fromJson(widget.order.foods![index]);
-                return Row(
-                  children: [
-                    Text(
-                      food.name,
-                      style: Theme.of(context).textTheme.headline5,
-                    ),
-                    Text(
-                      " x${food.count}",
-                      style: Theme.of(context).textTheme.headline5,
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
+      child: InkWell(
+        onLongPress: () {
+          if (widget.order.note != "") widget.longPress(widget.order.note);
+        },
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              color: ready ? Colors.yellow[700]! : color4,
+              borderRadius: BorderRadius.all(Radius.circular(6))),
+          width: double.maxFinite,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Visibility(
+                  visible: widget.order.note != "",
+                  child: const Icon(
+                    Icons.error,
+                    color: Colors.red,
+                  )),
+              Text(
+                "ID: ${widget.order.id}",
+                style: Theme.of(context).textTheme.headline5,
+              ),
+              Divider(
+                color: Colors.grey[850],
+                thickness: 1,
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.order.foods!.length,
+                itemBuilder: (_, index) {
+                  var food = Food.fromJson(widget.order.foods![index]);
+                  return Row(
+                    children: [
+                      Text(
+                        food.name,
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
+                      Text(
+                        " x${food.count}",
+                        style: Theme.of(context).textTheme.headline5,
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

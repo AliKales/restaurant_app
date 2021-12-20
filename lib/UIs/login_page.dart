@@ -3,6 +3,7 @@ import 'package:restaurant_app/UIs/custom_textfield.dart';
 
 import '../size.dart';
 import 'custom_gradient_button.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class LoginPage extends StatelessWidget {
   const LoginPage({
@@ -24,39 +25,43 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      child: Column(
-        children: [
-          SizedBox(
-            height: SizeConfig.safeBlockVertical! * 20,
-          ),
-          //username
-          CustomTextField(
-              textEditingController: tECUsername,
-              text: "Staff Username",
-              iconData: Icons.person),
-          SizedBox(
-            height: SizeConfig.safeBlockVertical! * 3,
-          ),
-          //password
-          CustomTextField(
-            textEditingController: tECPassword,
-            text: "Staff Password",
-            iconData: Icons.lock_outline,
-          ),
-          SizedBox(
-            height: SizeConfig.safeBlockVertical! * 6,
-          ),
-          // Log in
-          CustomGradientButton(
-            context: context,
-            text: "LOG IN",
-            loading: progress1,
-            func: () {
-              function!.call();
-            },
-          )
-        ],
-      ),
+      child:kIsWeb? SingleChildScrollView(child: widgetchild(context),):widgetchild(context),
+    );
+  }
+
+  Column widgetchild(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: SizeConfig.safeBlockVertical! * 20,
+        ),
+        //username
+        CustomTextField(
+            textEditingController: tECUsername,
+            text: "Staff Username",
+            iconData: Icons.person),
+        SizedBox(
+          height: SizeConfig.safeBlockVertical! * 3,
+        ),
+        //password
+        CustomTextField(
+          textEditingController: tECPassword,
+          text: "Staff Password",
+          iconData: Icons.lock_outline,
+        ),
+        SizedBox(
+          height: SizeConfig.safeBlockVertical! * 6,
+        ),
+        // Log in
+        CustomGradientButton(
+          context: context,
+          text: "LOG IN",
+          loading: progress1,
+          func: () {
+            function!.call();
+          },
+        )
+      ],
     );
   }
 }

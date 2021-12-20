@@ -22,7 +22,8 @@ class OrderTicket extends StatefulWidget {
       required this.inkWellOnTap,
       this.funcDelete,
       this.funcOrder,
-      this.buttonText="ADD"})
+      this.buttonText = "ADD",
+      this.longPress})
       : super(key: key);
 
   final double price;
@@ -34,6 +35,8 @@ class OrderTicket extends StatefulWidget {
   final Function(int index)? inkWellOnTap;
   final Function()? funcDelete;
   final Function()? funcOrder;
+  final Function()? longPress;
+
   ///* [buttonText] is for either 'ADD' or 'UPDATE' the ticket
   final String buttonText;
 
@@ -88,6 +91,7 @@ class _OrderTicketState extends State<OrderTicket> {
           add: widget.add,
           tECID: widget.tECID,
           buttonText: widget.buttonText,
+          longPress: widget.longPress,
         ),
       ),
     );
@@ -103,8 +107,9 @@ class ChildOrderTicket extends StatelessWidget {
       this.noTouch = false,
       this.tECID,
       this.add,
-      required this.inkWellOnTap, this.shrinkWrap=false,this.buttonText = "ADD"
-      })
+      required this.inkWellOnTap,
+      this.shrinkWrap = false,
+      this.buttonText = "ADD", this.longPress})
       : super(key: key);
 
   final double price;
@@ -114,6 +119,7 @@ class ChildOrderTicket extends StatelessWidget {
   final TextEditingController? tECID;
   final Function()? add;
   final Function(int index)? inkWellOnTap;
+  final Function()? longPress;
   final bool shrinkWrap;
   final String buttonText;
 
@@ -123,168 +129,169 @@ class ChildOrderTicket extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Container(
-            width: double.infinity,
-            color: color4,
-            child: Column(
-              children: [
-                Text(
-                  "ORDER",
-                  style: Theme.of(context)
-                      .textTheme
-                      .headline6!
-                      .copyWith(color: color1, fontWeight: FontWeight.bold),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
-                  child: Divider(
-                    color: Colors.grey[850],
-                    thickness: 1,
-                  ),
-                ),
-                Visibility(
-                  visible: noTouch==false,
-                  child: CustomGradientButton(
-                    context: context,
-                    loading: progress2,
-                    text: buttonText,
-                    func: add ?? () {},
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CustomTextField(
-                    textEditingController: tECID,
-                    isFilled: true,
-                    readOnly: noTouch,
-                    filledColor: Colors.grey[350],
-                    text: "Id or Name:",
-                    colorHint: Colors.black,
-                    textStyle: Theme.of(context)
+          child: InkWell(
+            onLongPress: () => longPress?.call()??{},
+            child: Container(
+              width: double.infinity,
+              color: color4,
+              child: Column(
+                children: [
+                  Text(
+                    "ORDER",
+                    style: Theme.of(context)
                         .textTheme
-                        .subtitle1!
-                        .copyWith(color: Colors.black),
+                        .headline6!
+                        .copyWith(color: color1, fontWeight: FontWeight.bold),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Divider(
-                    color: Colors.grey[850],
-                    thickness: 1,
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: ListView.builder(
-                      shrinkWrap: shrinkWrap,
-                      itemCount: foods.length,
-                      itemBuilder: (_, index) {
-                        return InkWell(
-                          onTap: () => inkWellOnTap!(index),
-                          onLongPress: () {
-                            if (foods[index].info!.isEmpty) {
-                              Funcs().showSnackBar(context, "No info!");
-                            } else {
-                              SimpleUIs.showCustomDialog(
-                                  context: context,
-                                  actions: [
-                                    CustomGradientButton(
-                                      context: context,
-                                      text: "OK",
-                                      func: () {
-                                        Navigator.pop(context);
-                                      },
-                                    )
-                                  ],
-                                  barriedDismissible: true,
-                                  title: foods[index].name,
-                                  content: Text(
-                                    foods[index].info!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .subtitle1!
-                                        .copyWith(color: color4),
-                                  ));
-                            }
-                          },
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                height: SizeConfig().setHight(1),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    foods[index].count.toString() +
-                                        " - ",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .subtitle1!
-                                        .copyWith(
-                                            color: color1,
-                                            fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    foods[index].name,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .subtitle1!
-                                        .copyWith(
-                                            color: color1,
-                                            fontWeight: FontWeight.bold),
-                                  ),
-                                  const Expanded(child: SizedBox()),
-                                  Text(
-                                    OrderTicket.formatCurrency.format(
-                                        double.parse(
-                                                foods[index].price) *
-                                            foods[index].count),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .subtitle1!
-                                        .copyWith(
-                                            color: color1,
-                                            fontWeight: FontWeight.bold),
-                                  )
-                                ],
-                              ),
-                              SizedBox(
-                                height: SizeConfig().setHight(1),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 0),
-                                child: Divider(
-                                  color: Colors.grey[850],
-                                  thickness: 1,
-                                ),
-                              ),
-                              Visibility(
-                                visible: index ==foods.length - 1,
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                    "Total= " +
-                                        NumberFormat.simpleCurrency()
-                                            .format(price),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .subtitle1!
-                                        .copyWith(
-                                            color: color1,
-                                            fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-                      },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Divider(
+                      color: Colors.grey[850],
+                      thickness: 1,
                     ),
                   ),
-                )
-              ],
+                  Visibility(
+                    visible: noTouch == false,
+                    child: CustomGradientButton(
+                      context: context,
+                      loading: progress2,
+                      text: buttonText,
+                      func: add ?? () {},
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CustomTextField(
+                      textEditingController: tECID,
+                      isFilled: true,
+                      readOnly: noTouch,
+                      filledColor: Colors.grey[350],
+                      text: "Id or Name:",
+                      colorHint: Colors.black,
+                      textStyle: Theme.of(context)
+                          .textTheme
+                          .subtitle1!
+                          .copyWith(color: Colors.black),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Divider(
+                      color: Colors.grey[850],
+                      thickness: 1,
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: ListView.builder(
+                        shrinkWrap: shrinkWrap,
+                        itemCount: foods.length,
+                        itemBuilder: (_, index) {
+                          return InkWell(
+                            onTap: () => inkWellOnTap!(index),
+                            onLongPress: () {
+                              if (foods[index].info!.isEmpty) {
+                                Funcs().showSnackBar(context, "No info!");
+                              } else {
+                                SimpleUIs.showCustomDialog(
+                                    context: context,
+                                    actions: [
+                                      CustomGradientButton(
+                                        context: context,
+                                        text: "OK",
+                                        func: () {
+                                          Navigator.pop(context);
+                                        },
+                                      )
+                                    ],
+                                    barriedDismissible: true,
+                                    title: foods[index].name,
+                                    content: Text(
+                                      foods[index].info!,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .subtitle1!
+                                          .copyWith(color: color4),
+                                    ));
+                              }
+                            },
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: SizeConfig().setHight(1),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      foods[index].count.toString() + " - ",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .subtitle1!
+                                          .copyWith(
+                                              color: color1,
+                                              fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      foods[index].name,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .subtitle1!
+                                          .copyWith(
+                                              color: color1,
+                                              fontWeight: FontWeight.bold),
+                                    ),
+                                    const Expanded(child: SizedBox()),
+                                    Text(
+                                      OrderTicket.formatCurrency.format(
+                                          double.parse(foods[index].price) *
+                                              foods[index].count),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .subtitle1!
+                                          .copyWith(
+                                              color: color1,
+                                              fontWeight: FontWeight.bold),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: SizeConfig().setHight(1),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 0),
+                                  child: Divider(
+                                    color: Colors.grey[850],
+                                    thickness: 1,
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: index == foods.length - 1,
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      "Total= " +
+                                          NumberFormat.simpleCurrency()
+                                              .format(price),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .subtitle1!
+                                          .copyWith(
+                                              color: color1,
+                                              fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

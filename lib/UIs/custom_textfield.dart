@@ -19,7 +19,7 @@ class CustomTextField extends StatelessWidget {
       this.colorHint,
       this.isFilled = false,
       this.filledColor,
-      this.textStyle, this.prefixText})
+      this.textStyle, this.prefixText,this.maxLine=1})
       : super(key: key);
 
   final TextEditingController? textEditingController;
@@ -28,6 +28,8 @@ class CustomTextField extends StatelessWidget {
   final IconData? iconData;
   final Function()? function;
   final TextInputType? keyboardType;
+
+  final int? maxLine;
 
   ///* [obscureText] makes the textfield for password input
   ///* default is false
@@ -55,6 +57,7 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       autofocus: false,
+      maxLines: maxLine,
       obscureText: obscureText ?? false,
       inputFormatters: isOnlyEnglish
           ? [

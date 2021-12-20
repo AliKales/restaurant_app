@@ -11,6 +11,7 @@ import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/add_new_personal.dart';
 import 'package:restaurant_app/pages/remove_update_page.dart';
 import 'package:restaurant_app/size.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class NewPersonnelPage extends StatefulWidget {
   const NewPersonnelPage({Key? key, required this.restaurant, required this.logedIn})
@@ -125,58 +126,62 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
       // When admin is not logged in
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        child: Column(
-          children: [
-            SizedBox(
-              height: SizeConfig.safeBlockVertical! * 20,
-            ),
-            //Admin password
-            CustomTextField(
-              textEditingController: tECPassword,
-              text: "Admin Password",
-              iconData: Icons.lock_outline,
-              obscureText: isPasswordShown,
-              suffixIconFunction: () {
-                setState(() {
-                  isPasswordShown = !isPasswordShown;
-                });
-              },
-            ),
-            SizedBox(
-              height: SizeConfig.safeBlockVertical! * 6,
-            ),
-            // Log in
-            CustomGradientButton(
-              context: context,
-              text: "LOG IN",
-              loading: progress1,
-              func: () {
-                FocusScope.of(context).unfocus();
-                setState(() {
-                  progress1 = true;
-                });
-                if (tECPassword.text == widget.restaurant.password) {
-                  isLoggedIn = true;
-                  widget.logedIn.call();
-                  setState(() {
-                    progress2 = true;
-                    personnelsCheckFromDB();
-                  });
-                  Funcs().showSnackBar(context, "Logged In!");
-                } else if (tECPassword.text.isEmpty) {
-                  Funcs().showSnackBar(context, "Password can't be empty!");
-                } else {
-                  Funcs().showSnackBar(context, "Wrong password!");
-                }
-                setState(() {
-                  progress1 = false;
-                });
-              },
-            )
-          ],
-        ),
+        child:kIsWeb? SingleChildScrollView(child: widgetChild(context),):widgetChild(context),
       );
     }
+  }
+
+  Column widgetChild(BuildContext context) {
+    return Column(
+        children: [
+          SizedBox(
+            height: SizeConfig.safeBlockVertical! * 20,
+          ),
+          //Admin password
+          CustomTextField(
+            textEditingController: tECPassword,
+            text: "Admin Password",
+            iconData: Icons.lock_outline,
+            obscureText: isPasswordShown,
+            suffixIconFunction: () {
+              setState(() {
+                isPasswordShown = !isPasswordShown;
+              });
+            },
+          ),
+          SizedBox(
+            height: SizeConfig.safeBlockVertical! * 6,
+          ),
+          // Log in
+          CustomGradientButton(
+            context: context,
+            text: "LOG IN",
+            loading: progress1,
+            func: () {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                progress1 = true;
+              });
+              if (tECPassword.text == widget.restaurant.password) {
+                isLoggedIn = true;
+                widget.logedIn.call();
+                setState(() {
+                  progress2 = true;
+                  personnelsCheckFromDB();
+                });
+                Funcs().showSnackBar(context, "Logged In!");
+              } else if (tECPassword.text.isEmpty) {
+                Funcs().showSnackBar(context, "Password can't be empty!");
+              } else {
+                Funcs().showSnackBar(context, "Wrong password!");
+              }
+              setState(() {
+                progress1 = false;
+              });
+            },
+          )
+        ],
+      );
   }
 
   dynamic widgetSort() {
@@ -184,7 +189,7 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
       visible: personnels.isNotEmpty,
       child: Align(
         alignment: Alignment.centerRight,
-        child: PopupMenuButton(
+        child: PopupMenuButton( 
           elevation: 10,
           color: color1,
           icon: const Icon(

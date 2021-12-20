@@ -24,13 +24,14 @@ class OrderAdapter extends TypeAdapter<Order> {
       price: fields[4] as double?,
       databaseReference: fields[5] as String?,
       idSearch: fields[6] as String,
+      note: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Order obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.orderBy)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class OrderAdapter extends TypeAdapter<Order> {
       ..writeByte(5)
       ..write(obj.databaseReference)
       ..writeByte(6)
-      ..write(obj.idSearch);
+      ..write(obj.idSearch)
+      ..writeByte(7)
+      ..write(obj.note);
   }
 
   @override

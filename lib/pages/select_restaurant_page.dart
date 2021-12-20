@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/custom_textfield.dart';
@@ -78,7 +79,11 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
                   child: SimpleUIs().progressIndicator(),
                 );
               } else {
-                return SingleChildScrollView(child: body());
+                if (kIsWeb) {
+                  return SingleChildScrollView(child: body());
+                } else {
+                  return body();
+                }
               }
             }
           },
@@ -135,7 +140,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
                   });
                   //if returns true, it means its logged in
                   Auth()
-                      .signInWithEmail(tECEMail.text, tECPassword.text,context)
+                      .signInWithEmail(tECEMail.text, tECPassword.text, context)
                       .then((value) {
                     if (value) {
                       emailVerificationChecker();

@@ -36,11 +36,15 @@ class _StaffPageState extends State<StaffPage> {
   TextEditingController tECPassword = TextEditingController();
   TextEditingController tECUsername = TextEditingController();
   TextEditingController tECID = TextEditingController();
+  TextEditingController tECNote = TextEditingController();
 
   var box = Hive.box('database');
 
   bool progress1 = false;
   bool progress2 = false;
+
+  ///* [progress3] note page
+  bool progress3 = false;
 
   List<Food> foods = [];
   List orders = [];
@@ -148,14 +152,65 @@ class _StaffPageState extends State<StaffPage> {
           ),
         ],
       ),
-      body: InkWell(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: body(),
+      body: Stack(
+        children: [
+          widgetBody(context),
+          Visibility(visible: progress3, child: widgetNotePage(context))
+        ],
       ),
+    );
+  }
+
+  Container widgetNotePage(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      color: Colors.black.withOpacity(0.95),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              CustomTextField(
+                  maxLine: null,
+                  textEditingController: tECNote,
+                  text: "Note",
+                  iconData: Icons.note_add),
+              SizedBox(
+                height: SizeConfig.safeBlockVertical! * 6,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  CustomGradientButton(
+                    context: context,
+                    text: "Close",
+                    color: Colors.black.withOpacity(0.95),
+                    isOutlined: true,
+                    func: () {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        progress3 = false;
+                      });
+                    },
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  InkWell widgetBody(BuildContext context) {
+    return InkWell(
+      highlightColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: body(),
     );
   }
 
@@ -223,6 +278,12 @@ class _StaffPageState extends State<StaffPage> {
                 tECID: tECID,
                 foods: foods,
                 price: getTotalAmount(),
+                longPress: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() {
+                    progress3 = true;
+                  });
+                },
                 inkWellOnTap: (index) {
                   countChanger(index);
                 },
@@ -266,10 +327,7 @@ class _StaffPageState extends State<StaffPage> {
     for (var food in foods) {
       food.count = 1;
     }
-    setState(() {
-      foods.clear();
-      tECID.clear();
-    });
+    clear();
   }
 
   Future funcOrder() async {
@@ -282,6 +340,7 @@ class _StaffPageState extends State<StaffPage> {
       list.add(item.toMap());
     }
     order ??= Order(
+        note: tECNote.text.trim(),
         orderBy: tECUsername.text,
         date: DateTime.now().toIso8601String(),
         id: tECID.text.trim(),
@@ -305,13 +364,18 @@ class _StaffPageState extends State<StaffPage> {
     } else {
       orders.insert(0, order);
       box.put("orders", orders);
-      setState(() {
-        order = null;
-        foods.clear();
-        tECID.clear();
-      });
+      clear();
     }
     Navigator.pop(context);
+  }
+
+  void clear() {
+    setState(() {
+      order = null;
+      foods.clear();
+      tECID.clear();
+      tECNote.clear();
+    });
   }
 
   getLists() async {

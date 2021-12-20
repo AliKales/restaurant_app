@@ -11,6 +11,7 @@ import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/size.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:intl/intl.dart';
 
 class StatisticksPage extends StatefulWidget {
   const StatisticksPage({Key? key, required this.restaurant}) : super(key: key);
@@ -45,6 +46,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
 
   int list1Selected = 0;
   int list2Selected = 0;
+  int selectedMonthForWeek = 0;
 
   double maximum = 0;
   double interval = 10;
@@ -64,6 +66,44 @@ class _StatisticksPageState extends State<StatisticksPage> {
     "October",
     "November",
     "December"
+  ];
+
+  List<ChartData> chartDataWeek = [
+    ChartData(
+      'Sun',
+      0,
+      const Color(0xFF00a000),
+    ),
+    ChartData(
+      'Mon',
+      0,
+      const Color(0xFF3a65a0),
+    ),
+    ChartData(
+      'Tue',
+      0,
+      const Color(0xFFfad5a0),
+    ),
+    ChartData(
+      'Wed',
+      0,
+      const Color(0xFF00afd8),
+    ),
+    ChartData(
+      'Thu',
+      0,
+      const Color(0xFF332343),
+    ),
+    ChartData(
+      'Fri',
+      0,
+      const Color(0xFF5ab47b),
+    ),
+    ChartData(
+      'Sat',
+      0,
+      const Color(0xFF243526),
+    ),
   ];
 
   final List<ChartData> chartData = [
@@ -95,7 +135,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
     ChartData(
       'Jun',
       0,
-      const Color(0xFF54454a),
+      const Color(0xFF5ab47b),
     ),
     ChartData(
       'Jul',
@@ -168,7 +208,10 @@ class _StatisticksPageState extends State<StatisticksPage> {
                 );
               },
             ),
-            const Divider(color: Colors.black,height: 1,),
+            const Divider(
+              color: Colors.black,
+              height: 1,
+            ),
             SizedBox(
               height: SizeConfig().setHight(3),
             ),
@@ -210,7 +253,10 @@ class _StatisticksPageState extends State<StatisticksPage> {
                 );
               },
             ),
-            const Divider(color: Colors.black,height: 1,),
+            const Divider(
+              color: Colors.black,
+              height: 1,
+            ),
             SizedBox(
               height: SizeConfig().setHight(5),
             ),
@@ -238,7 +284,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
                     series: <ChartSeries>[
                       LineSeries<SalesData, String>(
                         dataSource: salesDatas,
-                        xValueMapper: (SalesData sales, _) => sales.month.substring(0,3),
+                        xValueMapper: (SalesData sales, _) =>
+                            sales.month.substring(0, 3),
                         yValueMapper: (SalesData sales, _) => sales.sales,
                         color: color2,
                       )
@@ -247,7 +294,149 @@ class _StatisticksPageState extends State<StatisticksPage> {
                 ],
               );
             }),
-            const Divider(color: Colors.black,height: 1,),
+            const Divider(
+              color: Colors.black,
+              height: 1,
+            ),
+            StatefulBuilder(
+              builder: (context, setState) => Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      DropdownButton(
+                        value: selectedMonthForWeek,
+                        elevation: 10,
+                        dropdownColor: color3,
+                        icon: const Icon(
+                          Icons.sort_rounded,
+                          color: color4,
+                        ),
+                        items: List<DropdownMenuItem<int>>.generate(
+                          12,
+                          (index) => DropdownMenuItem(
+                            value: index,
+                            child: Text(
+                              monthsString[index],
+                              style: const TextStyle(
+                                  color: color4, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          selectedMonthForWeek = value as int;
+                          setState(() {});
+                        },
+                      ),
+                      CustomGradientButton(
+                        context: context,
+                        text: "List",
+                        func: () {
+                          list4(setState);
+                        },
+                      ),
+                    ],
+                  ),
+                  kIsWeb
+                      ? Row(children: [
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: chartDataWeek.length,
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemBuilder: (_, index) {
+                                return noName1(
+                                    index: index,
+                                    context: context,
+                                    list: chartDataWeek,
+                                    mainAxisAlignment: MainAxisAlignment.start);
+                              },
+                            ),
+                          ),
+                          chartDataWeek.any((element) => element.y > 0)
+                              ? Expanded(
+                                child: SfCircularChart(
+                                    series: <CircularSeries>[
+                                      // Renders doughnut chart
+                                      DoughnutSeries<ChartData, String>(
+                                          dataSource: chartDataWeek,
+                                          dataLabelSettings:
+                                              const DataLabelSettings(
+                                            textStyle: TextStyle(color: color4),
+                                            isVisible: true,
+                                            showZeroValue: false,
+                                            showCumulativeValues: true,
+                                            labelPosition:
+                                                ChartDataLabelPosition.outside,
+                                          ),
+                                          dataLabelMapper: (ChartData data, _) =>
+                                              (data.y.toInt()).toString(),
+                                          pointColorMapper: (ChartData data, _) =>
+                                              data.color,
+                                          xValueMapper: (ChartData data, _) =>
+                                              data.x,
+                                          yValueMapper: (ChartData data, _) =>
+                                              data.y),
+                                    ],
+                                  ),
+                              )
+                              : const SizedBox.shrink(),
+                        ])
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            GridView.builder(
+                              itemCount: chartDataWeek.length,
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                              ),
+                              itemBuilder: (_, index) {
+                                return noName1(
+                                    index: index,
+                                    context: context,
+                                    list: chartDataWeek,
+                                    mainAxisAlignment: MainAxisAlignment.start);
+                              },
+                            ),
+                            chartDataWeek.any((element) => element.y > 0)
+                                ? SfCircularChart(
+                                    series: <CircularSeries>[
+                                      // Renders doughnut chart
+                                      DoughnutSeries<ChartData, String>(
+                                          dataSource: chartDataWeek,
+                                          dataLabelSettings:
+                                              const DataLabelSettings(
+                                            textStyle: TextStyle(color: color4),
+                                            isVisible: true,
+                                            showZeroValue: false,
+                                            showCumulativeValues: true,
+                                            labelPosition:
+                                                ChartDataLabelPosition.outside,
+                                          ),
+                                          dataLabelMapper:
+                                              (ChartData data, _) =>
+                                                  (data.y.toInt()).toString(),
+                                          pointColorMapper:
+                                              (ChartData data, _) => data.color,
+                                          xValueMapper: (ChartData data, _) =>
+                                              data.x,
+                                          yValueMapper: (ChartData data, _) =>
+                                              data.y),
+                                    ],
+                                  )
+                                : const SizedBox.shrink(),
+                          ],
+                        ),
+                ],
+              ),
+            ),
+            const Divider(
+              color: Colors.black,
+              height: 1,
+            ),
             SizedBox(
               height: SizeConfig().setHight(3),
             ),
@@ -259,7 +448,10 @@ class _StatisticksPageState extends State<StatisticksPage> {
                           shrinkWrap: true,
                           itemCount: chartData.length,
                           itemBuilder: (_, index) {
-                            return noName1(index, context);
+                            return noName1(
+                                index: index,
+                                context: context,
+                                list: chartData);
                           },
                         ),
                       ),
@@ -329,25 +521,29 @@ class _StatisticksPageState extends State<StatisticksPage> {
         crossAxisCount: 4,
       ),
       itemBuilder: (context, index) {
-        return noName1(index, context);
+        return noName1(index: index, context: context, list: chartData);
       },
     );
   }
 
-  Row noName1(int index, BuildContext context) {
+  Row noName1(
+      {required int index,
+      required BuildContext context,
+      required List list,
+      MainAxisAlignment? mainAxisAlignment}) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
       children: [
         Container(
           height: kIsWeb ? SizeConfig().setWidth(2) : SizeConfig().setWidth(5),
           width: kIsWeb ? SizeConfig().setWidth(2) : SizeConfig().setWidth(5),
           decoration: BoxDecoration(
-            color: chartData[index].color,
+            color: list[index].color,
             shape: BoxShape.circle,
           ),
         ),
         Text(
-          " " + chartData[index].x,
+          " " + list[index].x,
           style: Theme.of(context).textTheme.subtitle1!.copyWith(color: color4),
         ),
       ],
@@ -499,15 +695,15 @@ class _StatisticksPageState extends State<StatisticksPage> {
         }
       }
       if (liste.isNotEmpty) {
-        salesDatas[i].sales=liste[0]['count'].toDouble();
+        salesDatas[i].sales = liste[0]['count'].toDouble();
       } else {
-        salesDatas[i].sales=0;
+        salesDatas[i].sales = 0;
       }
     }
     setState(() {});
   }
 
-  void list3(setState) {
+  void list3(StateSetter setState) {
     for (var i = 0; i < orders.length; i++) {
       for (var item in orders[i]) {
         int counter = 0;
@@ -517,6 +713,26 @@ class _StatisticksPageState extends State<StatisticksPage> {
         chartData[i].y = counter.toDouble();
       }
     }
+    setState(() {});
+  }
+
+  void list4(StateSetter setState) {
+    for (var item in chartDataWeek) {
+      item.y = 0;
+    }
+
+    for (var item in orders[selectedMonthForWeek]) {
+      int counter = 0;
+      String day = DateFormat('EEEE')
+          .format(DateTime.parse(item['date']))
+          .substring(0, 3);
+      int inte = chartDataWeek.indexWhere((element) => element.x == day);
+      for (var food in item['foods']) {
+        counter += food['count'] as int;
+      }
+      chartDataWeek[inte].y += counter;
+    }
+
     setState(() {});
   }
 }

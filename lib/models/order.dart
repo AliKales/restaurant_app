@@ -12,7 +12,8 @@ class Order {
       required this.foods,
       required this.price,
       required this.databaseReference,
-      required this.idSearch});
+      required this.idSearch,
+      this.note});
 
   @HiveField(0)
   final String? orderBy;
@@ -28,6 +29,8 @@ class Order {
   String? databaseReference;
   @HiveField(6)
   String idSearch;
+  @HiveField(7)
+  String? note;
 
   Map<String, dynamic> toMap() {
     return {
@@ -37,7 +40,8 @@ class Order {
       'foods': foods,
       'price':price,
       'databaseReference':databaseReference,
-      'idSearch':idSearch
+      'idSearch':idSearch,
+      'note':note
     };
   }
 
@@ -49,6 +53,7 @@ class Order {
           foods: json['foods'],
           price: json['price'].toDouble(),
           databaseReference:json['databaseReference'],
-          idSearch:json['idSearch']
+          idSearch:json['idSearch'],
+          note:json['note']??""
         );
 }

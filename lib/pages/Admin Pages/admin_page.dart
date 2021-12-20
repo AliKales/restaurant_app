@@ -3,24 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:restaurant_app/UIs/appbar_persons.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
-import 'package:restaurant_app/UIs/custom_textfield.dart';
-import 'package:restaurant_app/UIs/personnel_ui.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Auth.dart';
-import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
-import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/food_categories_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/food_menu_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/new_personnel_page.dart';
-import 'package:restaurant_app/pages/Admin%20Pages/add_new_personal.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/statisticks_page.dart';
 import 'package:restaurant_app/pages/payment_page.dart';
-import 'package:restaurant_app/pages/personal_manager_page.dart';
-import 'package:restaurant_app/pages/remove_update_page.dart';
-import 'package:restaurant_app/pages/select_restaurant_page.dart';
 import 'package:restaurant_app/size.dart';
 
 class AdminPage extends StatefulWidget {

@@ -169,6 +169,7 @@ class _CashierPageState extends State<CashierPage> {
                           ],
                         ),
                   child: ChildOrderTicket(
+                    tECID: tECSearch,
                     noTouch: true,
                     price: order!.price!,
                     foods: List<Food>.generate(order!.foods!.length,

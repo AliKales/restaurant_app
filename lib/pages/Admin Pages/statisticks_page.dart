@@ -355,31 +355,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
                           ),
                           chartDataWeek.any((element) => element.y > 0)
                               ? Expanded(
-                                child: SfCircularChart(
-                                    series: <CircularSeries>[
-                                      // Renders doughnut chart
-                                      DoughnutSeries<ChartData, String>(
-                                          dataSource: chartDataWeek,
-                                          dataLabelSettings:
-                                              const DataLabelSettings(
-                                            textStyle: TextStyle(color: color4),
-                                            isVisible: true,
-                                            showZeroValue: false,
-                                            showCumulativeValues: true,
-                                            labelPosition:
-                                                ChartDataLabelPosition.outside,
-                                          ),
-                                          dataLabelMapper: (ChartData data, _) =>
-                                              (data.y.toInt()).toString(),
-                                          pointColorMapper: (ChartData data, _) =>
-                                              data.color,
-                                          xValueMapper: (ChartData data, _) =>
-                                              data.x,
-                                          yValueMapper: (ChartData data, _) =>
-                                              data.y),
-                                    ],
-                                  ),
-                              )
+                                  child: widgetDoughnutSeries(),
+                                )
                               : const SizedBox.shrink(),
                         ])
                       : Column(
@@ -402,31 +379,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
                               },
                             ),
                             chartDataWeek.any((element) => element.y > 0)
-                                ? SfCircularChart(
-                                    series: <CircularSeries>[
-                                      // Renders doughnut chart
-                                      DoughnutSeries<ChartData, String>(
-                                          dataSource: chartDataWeek,
-                                          dataLabelSettings:
-                                              const DataLabelSettings(
-                                            textStyle: TextStyle(color: color4),
-                                            isVisible: true,
-                                            showZeroValue: false,
-                                            showCumulativeValues: true,
-                                            labelPosition:
-                                                ChartDataLabelPosition.outside,
-                                          ),
-                                          dataLabelMapper:
-                                              (ChartData data, _) =>
-                                                  (data.y.toInt()).toString(),
-                                          pointColorMapper:
-                                              (ChartData data, _) => data.color,
-                                          xValueMapper: (ChartData data, _) =>
-                                              data.x,
-                                          yValueMapper: (ChartData data, _) =>
-                                              data.y),
-                                    ],
-                                  )
+                                ? widgetDoughnutSeries()
                                 : const SizedBox.shrink(),
                           ],
                         ),
@@ -467,6 +420,27 @@ class _StatisticksPageState extends State<StatisticksPage> {
           ],
         ),
       ),
+    );
+  }
+
+  SfCircularChart widgetDoughnutSeries() {
+    return SfCircularChart(
+      series: <CircularSeries>[
+        // Renders doughnut chart
+        DoughnutSeries<ChartData, String>(
+            dataSource: chartDataWeek,
+            dataLabelSettings: const DataLabelSettings(
+              textStyle: TextStyle(color: color4),
+              isVisible: true,
+              showZeroValue: false,
+              showCumulativeValues: true,
+              labelPosition: ChartDataLabelPosition.outside,
+            ),
+            dataLabelMapper: (ChartData data, _) => (data.y.toInt()).toString(),
+            pointColorMapper: (ChartData data, _) => data.color,
+            xValueMapper: (ChartData data, _) => data.x,
+            yValueMapper: (ChartData data, _) => data.y),
+      ],
     );
   }
 

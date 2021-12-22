@@ -68,11 +68,12 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
                     context: context,
                     text: "New Personnel",
                     func: () async {
-                      await Funcs().navigatorPush(
+                      Personnel personnel = await Funcs().navigatorPush(
                           context,
                           AddNewPersonal(
                             restaurantName: widget.restaurant.restaurantName,
                           ));
+                      personnels.insert(0, personnel);
                     },
                     icon: const Icon(
                       Icons.person_add_alt_rounded,

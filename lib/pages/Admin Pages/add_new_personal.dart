@@ -32,7 +32,7 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
   TextEditingController tECPassword = TextEditingController();
   TextEditingController tECRole = TextEditingController();
 
-  List roles = ["Select a role", "Staff", "Chef","Cashier"];
+  List roles = ["Select a role", "Staff", "Chef", "Cashier"];
   int selectedRole = 0;
 
   File? photo;
@@ -257,7 +257,7 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
     setState(() {
       progress1 = true;
       // progress2 makes the photo visible and show uploading progress
-      //progress2 = true;
+      progress2 = true;
     });
     String error = await checkIfReadyToShare();
     if (error != "") {
@@ -274,43 +274,57 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
     id = id.replaceAll(":", "");
     id = id.replaceAll(".", "");
 
-    // String downloadURL = await Storage.addPersonnelPhoto(
-    //     context: context,
-    //     file: photo!,
-    //     id: id,
-    //     uploadedByte: (uploadedByte) {
-    //       setState(() {
-    //         uploadProgress = uploadedByte.toInt();
-    //       });
-    //     });
+    if (photo != null) {
+      await Storage.addPersonnelPhoto(
+          context: context,
+          file: photo!,
+          id: id,
+          uploadedByte: (uploadedByte) {
+            setState(() {
+              uploadProgress = uploadedByte.toInt();
+            });
+          },
+          onFinish: (downloadURL) async {
+            if (downloadURL == "") {
+              Funcs().showSnackBar(context, "Error! Please try again");
+            } else {
+              await addPersonnelToDatabase2(downloadURL, id);
+            }
+            setState(() {
+              progress1 = false;
+              // progress2 makes the photo visible and show uploading progress
+              progress2 = false;
+            });
+          });
+    } else {
+      await addPersonnelToDatabase2("", id);
+      setState(() {
+        progress1 = false;
+        // progress2 makes the photo visible and show uploading progress
+        progress2 = false;
+      });
+    }
+  }
 
-    // if (downloadURL == "") {
-    //   Funcs().showSnackBar(context, "Error! Please try again");
-    // } else {
-    await Firestore.addPersonnel(
-            context: context,
-            personnel: Personnel(
-                name: tECName.text,
-                lastName: tECLastname.text,
-                username: tECUsername.text,
-                phone: tECPassword.text,
-                photoURL: "downloadURL",
-                createdDate: DateTime.now().toIso8601String(),
-                role: tECRole.text,
-                password: tECPassword.text,
-                id: id,
-                restaurantName: widget.restaurantName))
+  Future addPersonnelToDatabase2(String downloadURL, String id) async {
+    final personnel = Personnel(
+        name: tECName.text,
+        lastName: tECLastname.text,
+        username: tECUsername.text,
+        phone: tECPassword.text,
+        photoURL: downloadURL,
+        createdDate: DateTime.now().toIso8601String(),
+        role: tECRole.text,
+        password: tECPassword.text,
+        id: id,
+        restaurantName: widget.restaurantName);
+    await Firestore.addPersonnel(context: context, personnel: personnel)
         .then((value) {
       if (value) {
         Funcs().showSnackBar(context, "Personnel has been successfully added.");
-        Navigator.pop(context);
-      } else {
-        setState(() {
-          progress1 = false;
-        });
+        Navigator.pop(context,personnel);
       }
     });
-    //}
   }
 
   Future<String> checkIfReadyToShare() async {

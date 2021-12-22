@@ -11,7 +11,6 @@ import 'package:restaurant_app/pages/select_restaurant_page.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -30,7 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      scrollBehavior:kIsWeb? MyScrollBehavior():null,
+        scrollBehavior: kIsWeb ? MyScrollBehavior() : null,
         title: 'Flutter Demo',
         theme: ThemeData(scaffoldBackgroundColor: color1),
         home: const SelectRestaurantPage());
@@ -39,8 +38,8 @@ class MyApp extends StatelessWidget {
 
 class MyScrollBehavior extends MaterialScrollBehavior {
   @override
-  Set<PointerDeviceKind> get dragDevices => { 
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-  };
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
 }

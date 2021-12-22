@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.caroby.caroby_restaurant_app">
+
+    
+
    <application
         android:label="restaurant_app"
         android:name="${applicationName}"

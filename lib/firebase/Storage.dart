@@ -6,12 +6,13 @@ import 'package:restaurant_app/funcs.dart';
 
 class Storage {
   ///* [addPersonnelPhoto] this method upload thee photo onto database and it returns download URL
-  ///* if there is a error it returns "false" as String
-  static Future<String> addPersonnelPhoto({
+  ///* if there is a error it returns "" as String
+  static Future addPersonnelPhoto({
     required File file,
     required String id,
     required Function(double) uploadedByte,
     required final context,
+    required Function(String) onFinish,
   }) async {
     String isSuccess = "";
     try {
@@ -20,27 +21,25 @@ class Storage {
           .ref('personnels/${Auth().getEMail()}/$id')
           .putFile(file);
 
-      task.snapshotEvents.listen((firebase_storage.TaskSnapshot snapshot) {
+      task.snapshotEvents.listen(
+          (firebase_storage.TaskSnapshot snapshot) async {
         uploadedByte((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
         if (snapshot.state == firebase_storage.TaskState.success) {
-          isSuccess = "true";
+          isSuccess = await firebase_storage.FirebaseStorage.instance
+              .ref('personnels/${Auth().getEMail()}/$id')
+              .getDownloadURL();
+          onFinish.call(isSuccess);
         }
       }, onError: (e) {
-        isSuccess = "false";
+        isSuccess = "";
+        onFinish.call("");
       });
-
-      if (isSuccess == "true") {
-        isSuccess = await firebase_storage.FirebaseStorage.instance
-            .ref('personnels/${Auth().getEMail()}/$id')
-            .getDownloadURL();
-      }
-      return isSuccess;
-    } on FirebaseException catch (e){
+    } on FirebaseException catch (e) {
       Funcs().showSnackBar(context, e.message.toString());
-      return "";
+      onFinish.call("");
     } catch (e) {
       Funcs().showSnackBar(context, e.toString());
-      return "";
+      onFinish.call("");
     }
   }
 }

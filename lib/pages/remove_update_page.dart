@@ -99,7 +99,8 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
                           ),
                           SimpleUIs().widgetWithProgress(
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   CustomGradientButton(
                                     context: context,
@@ -185,37 +186,34 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
           //photo
           Column(
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.width / 1.96,
-                    width: MediaQuery.of(context).size.width / 1.96,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                          colors: [color2, color3],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(6),
-                      ),
-                    ),
+              Container(
+                height: MediaQuery.of(context).size.width / 1.96,
+                width: MediaQuery.of(context).size.width / 1.96,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [color2, color3],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(6),
                   ),
-                  Container(
-                    height: MediaQuery.of(context).size.width / 2,
-                    width: MediaQuery.of(context).size.width / 2,
-                    decoration: BoxDecoration(
-                      // image: DecorationImage(
-                      //   image: FileImage(photo!),
-                      //   fit: BoxFit.fill,
-
-                      // ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
+                ),
+                child: widget.personnel.photoURL == ""
+                    ? const SizedBox.shrink()
+                    : Image.network(
+                        widget.personnel.photoURL,
+                        loadingBuilder: (context, child, loadingProgress) =>
+                            const Center(child: CircularProgressIndicator(color: color4,),),
+                        errorBuilder: (context, error, stackTrace) => Center(
+                          child: Text(
+                            "ERROR",
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline6!
+                                .copyWith(color: Colors.red),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(
                 height: 12,
@@ -240,8 +238,8 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
             height: SizeConfig().setHight(3),
           ),
           widgetText(
-              Funcs().formatDateTime(
-                  DateTime.parse(widget.personnel.createdDate)),
+              Funcs()
+                  .formatDateTime(DateTime.parse(widget.personnel.createdDate)),
               "",
               null,
               null),

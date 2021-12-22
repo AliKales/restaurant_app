@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
@@ -51,6 +52,22 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     super.dispose();
   }
 
+  Future purchaes() async {
+    try {
+      const Set<String> _kIds = <String>{'test_in_app'};
+      final ProductDetailsResponse response =
+          await InAppPurchase.instance.queryProductDetails(_kIds);
+      if (response.notFoundIDs.isNotEmpty) {
+        // Handle the error.
+      }
+      List<ProductDetails> products = response.productDetails;
+      print(products);
+    } catch (e) {
+      print(e);
+      // optional error handling
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,6 +81,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             // exit button
             InkWell(
               onTap: () {
+                purchaes();
                 Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
               },
               onDoubleTap: () async {
@@ -188,7 +206,6 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
         body: body());
   }
 
-
   List persons = [
     {
       "text": "Staff",
@@ -229,7 +246,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                 itemCount: persons.length,
                 shrinkWrap: true,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount:kIsWeb? 4:2,
+                    crossAxisCount: kIsWeb ? 4 : 2,
                     mainAxisSpacing: SizeConfig().setHight(5),
                     crossAxisSpacing: SizeConfig().setWidth(5)),
                 itemBuilder: (context, index) {

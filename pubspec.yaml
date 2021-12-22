@@ -47,8 +47,7 @@ dependencies:
   intl: ^0.17.0
   flutter_slidable: ^1.1.0
   syncfusion_flutter_charts: ^19.3.57
-
-  
+  in_app_purchase: ^2.0.1
   
 dev_dependencies:
   hive_generator: ^1.1.1

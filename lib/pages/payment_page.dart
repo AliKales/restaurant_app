@@ -123,31 +123,27 @@ class _PaymentPageState extends State<PaymentPage> {
                       Funcs().showSnackBar(
                           context, "Restaurant Name can't be empty!");
                     } else {
-                      Funcs().getCurrentGlobalTime(context).then((value) {
-                        Firestore()
-                            .createARestaurant(
-                          Restaurant(
-                            username: tECEUsername.text.trim(),
-                            password: tECPassword.text.trim(),
-                            restaurantName: tECRestaurantName.text.trim(),
-                            createdTime: value.toIso8601String(),
-                            email: Auth().getEMail(),
-                          ),
-                        )
-                            .then((value) {
+                      Funcs()
+                          .getCurrentGlobalTimeForRestaurantCreating(context)
+                          .then((value) {
+                        if (value != null) {
+                          Navigator.pop(
+                              context,
+                              Restaurant(
+                                  username: tECEUsername.text.trim(),
+                                  password: tECPassword.text.trim(),
+                                  restaurantName: tECRestaurantName.text.trim(),
+                                  createdDate: value.toIso8601String(),
+                                  email: Auth().getEMail(),
+                                  paymentDate: value
+                                      .add(const Duration(days: 31))
+                                      .toIso8601String()));
+                        } else {
                           setState(() {
                             progress1 = false;
                           });
-                          if (value.runtimeType == Restaurant) {
-                            box.put("restaurant", value);
-                            Funcs().showSnackBar(
-                                context, "Your resaurant is ready.");
-                            Navigator.pop(context, true);
-                          } else {
-                            Funcs().showSnackBar(
-                                context, "Error, try again later.");
-                          }
-                        });
+                          Funcs().showSnackBar(context, "ERROR");
+                        }
                       });
                     }
                   });

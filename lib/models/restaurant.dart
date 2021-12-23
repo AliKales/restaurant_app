@@ -8,8 +8,9 @@ class Restaurant {
       {required this.username,
       required this.password,
       required this.restaurantName,
-      required this.createdTime,
-      required this.email});
+      required this.createdDate,
+      required this.email,
+      required this.paymentDate});
 
   @HiveField(0)
   String username;
@@ -18,25 +19,30 @@ class Restaurant {
   @HiveField(2)
   String restaurantName;
   @HiveField(3)
-  String createdTime;
+  String createdDate;
   @HiveField(4)
   String email;
+  @HiveField(5)
+  String paymentDate;
 
   Map<String, dynamic> toMap() {
     return {
       'username': username,
       'password': password,
       'restaurantName': restaurantName,
-      'createdTime': createdTime,
-      'email':email
+      'createdDate': createdDate,
+      'email': email,
+      'paymentDate':paymentDate
     };
   }
 
   Restaurant.fromJson(Map json)
       : this(
-            username: json['username'],
-            password: json['password'],
-            restaurantName: json['restaurantName'],
-            createdTime: json['createdTime'],
-            email: json['email'],);
+          username: json['username'],
+          password: json['password'],
+          restaurantName: json['restaurantName'],
+          createdDate: json['createdDate'],
+          email: json['email'],
+          paymentDate: json['paymentDate'],
+        );
 }

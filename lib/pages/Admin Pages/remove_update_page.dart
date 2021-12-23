@@ -202,8 +202,25 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
                     ? const SizedBox.shrink()
                     : Image.network(
                         widget.personnel.photoURL,
-                        loadingBuilder: (context, child, loadingProgress) =>
-                            const Center(child: CircularProgressIndicator(color: color4,),),
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: ClipRRect(
+                                child: child,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                              ),
+                            );
+                          }
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: color4,
+                            ),
+                          );
+                        },
                         errorBuilder: (context, error, stackTrace) => Center(
                           child: Text(
                             "ERROR",
@@ -451,7 +468,7 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
         .then((value) {
       if (value) {
         Navigator.pop(
-            context, {'what': 'delete', 'personnel': widget.personnel.id});
+            context, {'what': 'delete', 'personnelId': widget.personnel.id});
       }
     });
   }

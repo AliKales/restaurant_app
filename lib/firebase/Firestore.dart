@@ -20,21 +20,26 @@ class Firestore {
       if (!value.exists) {
         return Restaurant(
             username: "username",
-            password: "admin-code3152",
+            password: "ozel-admin-code:31",
             restaurantName: "restaurantName",
-            createdTime: "createdTime",
-            email: "email");
+            createdDate: "createdDate",
+            email: "email",
+            paymentDate: "paymentDate");
       }
       return Restaurant.fromJson(value.data() as Map);
     } on FirebaseException catch (e) {
       Funcs().showSnackBar(context, "ERROR!");
-      print(e);
       return null;
     } catch (e) {
-      print(e);
       Funcs().showSnackBar(context, "ERROR!");
       return null;
     }
+  }
+
+  Future deleteRestaurant(context) async {
+    try {
+      await firestore.collection("restaurants").doc(Auth().getEMail()).delete();
+    } catch (e) {}
   }
 
   ///* if there's error, it returns null

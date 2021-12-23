@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:hive/hive.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
@@ -33,6 +33,11 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   Restaurant? restaurant;
 
   bool progress1 = false;
+  bool progress2 = false;
+
+  bool permission1 = false;
+
+  var box = Hive.box('database');
 
   @override
   void initState() {
@@ -43,6 +48,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     if (!FirebaseAuth.instance.currentUser!.emailVerified) {
       //FirebaseAuth.instance.currentUser!.sendEmailVerification();
     }
+    WidgetsBinding.instance!.addPostFrameCallback((_) => getRestaurantInfos());
     super.initState();
   }
 
@@ -50,22 +56,6 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   void dispose() {
     _animationController!.dispose();
     super.dispose();
-  }
-
-  Future purchaes() async {
-    try {
-      const Set<String> _kIds = <String>{'test_in_app'};
-      final ProductDetailsResponse response =
-          await InAppPurchase.instance.queryProductDetails(_kIds);
-      if (response.notFoundIDs.isNotEmpty) {
-        // Handle the error.
-      }
-      List<ProductDetails> products = response.productDetails;
-      print(products);
-    } catch (e) {
-      print(e);
-      // optional error handling
-    }
   }
 
   @override
@@ -81,24 +71,13 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             // exit button
             InkWell(
               onTap: () {
-                purchaes();
                 Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
               },
               onDoubleTap: () async {
-                SimpleUIs.showCustomDialog(
-                    context: context,
-                    barriedDismissible: false,
-                    onWillPop: false,
-                    actions: [],
-                    title: "Checking password..",
-                    content: SimpleUIs().progressIndicator());
-                restaurant = await Firestore().getRestaurant(context);
-                Navigator.pop(context);
                 if (restaurant == null) {
                   return;
-                } else if (restaurant!.password == "admin-code3152") {
-                  Funcs().navigatorPushReplacement(
-                      context, const SelectRestaurantPage());
+                } else if (restaurant!.password == "ozel-admin-code:31") {
+                  await signOut();
                 } else {
                   await showGeneralDialog(
                     context: context,
@@ -179,14 +158,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                   } else if (tECPasswordToExit.text.isEmpty) {
                     Funcs().showSnackBar(context, "Password can't be empty!");
                   } else if (tECPasswordToExit.text == restaurant!.password) {
-                    FirebaseAuth.instance.signOut().then((value) async {
-                      await Future.delayed(const Duration(milliseconds: 500));
-                      Funcs().navigatorPushReplacement(
-                          context, const SelectRestaurantPage());
-                    }).onError((error, stackTrace) {
-                      Funcs().showSnackBar(
-                          context, "Unexpected error. Please try again!");
-                    });
+                    await signOut();
                   } else {
                     Funcs().showSnackBar(context, "Wrong password!");
                   }
@@ -225,12 +197,40 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     {
       "text": "Admin",
       "icon": Icons.admin_panel_settings_rounded,
-      "page": const AdminPage(),
+      "page": const AdminPage(
+        isPaid: true,
+      ),
     },
   ];
 
   Widget body() {
-    if (FirebaseAuth.instance.currentUser!.emailVerified) {
+    if (progress2) {
+      return Center(
+        child: CustomGradientButton(
+          context: context,
+          text: "TRY AGAIN",
+          func: () {
+            getRestaurantInfos();
+          },
+        ),
+      );
+    }
+    if (restaurant == null) {
+      return Center(
+        child: Column(
+          children: [
+            Text(
+              "RESTAURANT INFOS ARE GETTING..",
+              style: Theme.of(context)
+                  .textTheme
+                  .headline5!
+                  .copyWith(color: color4, fontWeight: FontWeight.bold),
+            ),
+            SimpleUIs().progressIndicator(),
+          ],
+        ),
+      );
+    } else if (FirebaseAuth.instance.currentUser!.emailVerified) {
       return Center(
         child: SlideTransition(
           position: Tween<Offset>(
@@ -297,7 +297,19 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   dynamic widgetContainerForPerson(Map map) {
     return InkWell(
       onTap: () {
-        Funcs().navigatorPushReplacement(context, map['page']);
+        if (permission1) {
+          Funcs().navigatorPushReplacement(context, map['page']);
+        } else {
+          if (map['text'] == "Admin") {
+            Funcs().navigatorPushReplacement(
+                context,
+                const AdminPage(
+                  isPaid: false,
+                ));
+          } else {
+            Funcs().showSnackBar(context, "Please Pay To Keep Using!!!");
+          }
+        }
       },
       child: Container(
         height: SizeConfig.safeBlockHorizontal! * 30,
@@ -333,5 +345,59 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
         ),
       ),
     );
+  }
+
+  Future signOut() async {
+    FirebaseAuth.instance.signOut().then((value) async {
+      await Future.delayed(const Duration(milliseconds: 500));
+      Funcs().navigatorPushReplacement(context, const SelectRestaurantPage());
+    }).onError((error, stackTrace) {
+      Funcs().showSnackBar(context, "Unexpected error. Please try again!");
+    });
+  }
+
+  //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
+  Future getRestaurantInfos() async {
+    int inDays = 1;
+    Map map = box.get('infoRestaurant') ?? {};
+    if (map.isNotEmpty) {
+      inDays =
+          DateTime.now().difference(DateTime.parse(map['dateTime'])).inDays;
+    }
+    if (inDays == 0) {
+      restaurant = map['restaurant'];
+      permission1=true;
+    } else {
+      setState(() {
+        progress2 = false;
+      });
+      restaurant = await Firestore().getRestaurant(context);
+      if (restaurant == null) {
+        progress2 = true;
+      }
+      if (restaurant != null && restaurant!.password != "ozel-admin-code:31") {
+        box.put("infoRestaurant", {
+          'dateTime': DateTime.now().toIso8601String(),
+          'restaurant': restaurant
+        });
+        await Funcs()
+            .getCurrentGlobalTimeForRestaurantCreating(context)
+            .then((value) {
+          if (value != null) {
+            DateTime paymentDate = DateTime.parse(restaurant!.paymentDate);
+            int howManyDays = paymentDate.difference(value).inDays;
+            if (howManyDays > 0) {
+              permission1 = true;
+            }
+          } else {
+            progress2 = true;
+          }
+        });
+      }
+    }
+
+    setState(() {
+      box.put("restaurant", restaurant);
+    });
   }
 }

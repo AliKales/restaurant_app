@@ -159,39 +159,66 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
                       //photo
                       : Column(
                           children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  height:
-                                      MediaQuery.of(context).size.width / 1.96,
-                                  width:
-                                      MediaQuery.of(context).size.width / 1.96,
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                        colors: [color2, color3],
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight),
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(6),
-                                    ),
+                            Container(
+                              height: MediaQuery.of(context).size.width / 1.96,
+                              width: MediaQuery.of(context).size.width / 1.96,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                    colors: [color2, color3],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(6),
+                                ),
+                              ),
+                              child: Image.file(
+                                photo!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Center(
+                                  child: Text(
+                                    "ERROR",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline6!
+                                        .copyWith(color: Colors.red),
                                   ),
                                 ),
-                                Container(
-                                  height: MediaQuery.of(context).size.width / 2,
-                                  width: MediaQuery.of(context).size.width / 2,
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: FileImage(photo!),
-                                      fit: BoxFit.fill,
-                                    ),
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(6),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
+                            // Stack(
+                            //   alignment: Alignment.center,
+                            //   children: [
+                            //     Container(
+                            //       height:
+                            //           MediaQuery.of(context).size.width / 1.96,
+                            //       width:
+                            //           MediaQuery.of(context).size.width / 1.96,
+                            //       decoration: const BoxDecoration(
+                            //         gradient: LinearGradient(
+                            //             colors: [color2, color3],
+                            //             begin: Alignment.centerLeft,
+                            //             end: Alignment.centerRight),
+                            //         borderRadius: BorderRadius.all(
+                            //           Radius.circular(6),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     Container(
+                            //       height: MediaQuery.of(context).size.width / 2,
+                            //       width: MediaQuery.of(context).size.width / 2,
+                            //       decoration: BoxDecoration(
+                            //         image: DecorationImage(
+                            //           image: FileImage(photo!),
+                            //           fit: BoxFit.fill,
+                            //         ),
+                            //         borderRadius: const BorderRadius.all(
+                            //           Radius.circular(6),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
                             const SizedBox(
                               height: 12,
                             )
@@ -322,7 +349,7 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
         .then((value) {
       if (value) {
         Funcs().showSnackBar(context, "Personnel has been successfully added.");
-        Navigator.pop(context,personnel);
+        Navigator.pop(context, personnel);
       }
     });
   }

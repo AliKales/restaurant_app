@@ -9,12 +9,13 @@ import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/add_new_personal.dart';
-import 'package:restaurant_app/pages/remove_update_page.dart';
+import 'package:restaurant_app/pages/Admin%20Pages/remove_update_page.dart';
 import 'package:restaurant_app/size.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class NewPersonnelPage extends StatefulWidget {
-  const NewPersonnelPage({Key? key, required this.restaurant, required this.logedIn})
+  const NewPersonnelPage(
+      {Key? key, required this.restaurant, required this.logedIn})
       : super(key: key);
   final Restaurant restaurant;
   final Function() logedIn;
@@ -23,7 +24,8 @@ class NewPersonnelPage extends StatefulWidget {
   _NewPersonnelPageState createState() => _NewPersonnelPageState();
 }
 
-class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepAliveClientMixin<NewPersonnelPage> {
+class _NewPersonnelPageState extends State<NewPersonnelPage>
+    with AutomaticKeepAliveClientMixin<NewPersonnelPage> {
   bool isLoggedIn = false;
   bool progress1 = false;
   //progress2 is for when personnels getting from database
@@ -74,6 +76,7 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
                             restaurantName: widget.restaurant.restaurantName,
                           ));
                       personnels.insert(0, personnel);
+                      setState(() {});
                     },
                     icon: const Icon(
                       Icons.person_add_alt_rounded,
@@ -127,62 +130,66 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
       // When admin is not logged in
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        child:kIsWeb? SingleChildScrollView(child: widgetChild(context),):widgetChild(context),
+        child: kIsWeb
+            ? SingleChildScrollView(
+                child: widgetChild(context),
+              )
+            : widgetChild(context),
       );
     }
   }
 
   Column widgetChild(BuildContext context) {
     return Column(
-        children: [
-          SizedBox(
-            height: SizeConfig.safeBlockVertical! * 20,
-          ),
-          //Admin password
-          CustomTextField(
-            textEditingController: tECPassword,
-            text: "Admin Password",
-            iconData: Icons.lock_outline,
-            obscureText: isPasswordShown,
-            suffixIconFunction: () {
+      children: [
+        SizedBox(
+          height: SizeConfig.safeBlockVertical! * 20,
+        ),
+        //Admin password
+        CustomTextField(
+          textEditingController: tECPassword,
+          text: "Admin Password",
+          iconData: Icons.lock_outline,
+          obscureText: isPasswordShown,
+          suffixIconFunction: () {
+            setState(() {
+              isPasswordShown = !isPasswordShown;
+            });
+          },
+        ),
+        SizedBox(
+          height: SizeConfig.safeBlockVertical! * 6,
+        ),
+        // Log in
+        CustomGradientButton(
+          context: context,
+          text: "LOG IN",
+          loading: progress1,
+          func: () {
+            FocusScope.of(context).unfocus();
+            setState(() {
+              progress1 = true;
+            });
+            if (tECPassword.text == widget.restaurant.password) {
+              isLoggedIn = true;
+              widget.logedIn.call();
               setState(() {
-                isPasswordShown = !isPasswordShown;
+                progress2 = true;
+                personnelsCheckFromDB();
               });
-            },
-          ),
-          SizedBox(
-            height: SizeConfig.safeBlockVertical! * 6,
-          ),
-          // Log in
-          CustomGradientButton(
-            context: context,
-            text: "LOG IN",
-            loading: progress1,
-            func: () {
-              FocusScope.of(context).unfocus();
-              setState(() {
-                progress1 = true;
-              });
-              if (tECPassword.text == widget.restaurant.password) {
-                isLoggedIn = true;
-                widget.logedIn.call();
-                setState(() {
-                  progress2 = true;
-                  personnelsCheckFromDB();
-                });
-                Funcs().showSnackBar(context, "Logged In!");
-              } else if (tECPassword.text.isEmpty) {
-                Funcs().showSnackBar(context, "Password can't be empty!");
-              } else {
-                Funcs().showSnackBar(context, "Wrong password!");
-              }
-              setState(() {
-                progress1 = false;
-              });
-            },
-          )
-        ],
-      );
+              Funcs().showSnackBar(context, "Logged In!");
+            } else if (tECPassword.text.isEmpty) {
+              Funcs().showSnackBar(context, "Password can't be empty!");
+            } else {
+              Funcs().showSnackBar(context, "Wrong password!");
+            }
+            setState(() {
+              progress1 = false;
+            });
+          },
+        )
+      ],
+    );
   }
 
   dynamic widgetSort() {
@@ -190,7 +197,7 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
       visible: personnels.isNotEmpty,
       child: Align(
         alignment: Alignment.centerRight,
-        child: PopupMenuButton( 
+        child: PopupMenuButton(
           elevation: 10,
           color: color1,
           icon: const Icon(
@@ -242,7 +249,7 @@ class _NewPersonnelPageState extends State<NewPersonnelPage> with AutomaticKeepA
             );
             if (value != null && value['what'] == 'delete') {
               setState(() {
-                personnels.removeWhere((element) => element.id == value.id);
+                personnels.removeAt(index);
               });
               //here it checks if listview is empty, if it is then it shows loading proccess and get new personnels from databa
               //if there is no more personnels then it close everything

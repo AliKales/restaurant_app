@@ -20,15 +20,16 @@ class RestaurantAdapter extends TypeAdapter<Restaurant> {
       username: fields[0] as String,
       password: fields[1] as String,
       restaurantName: fields[2] as String,
-      createdTime: fields[3] as String,
+      createdDate: fields[3] as String,
       email: fields[4] as String,
+      paymentDate: fields[5] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Restaurant obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.username)
       ..writeByte(1)
@@ -36,9 +37,11 @@ class RestaurantAdapter extends TypeAdapter<Restaurant> {
       ..writeByte(2)
       ..write(obj.restaurantName)
       ..writeByte(3)
-      ..write(obj.createdTime)
+      ..write(obj.createdDate)
       ..writeByte(4)
-      ..write(obj.email);
+      ..write(obj.email)
+      ..writeByte(5)
+      ..write(obj.paymentDate);
   }
 
   @override

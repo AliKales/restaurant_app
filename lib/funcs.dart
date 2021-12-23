@@ -67,6 +67,29 @@ class Funcs {
     return now;
   }
 
+  Future<DateTime?> getCurrentGlobalTimeForRestaurantCreating(context) async {
+    DateTime? now;
+    try {
+      Response response = await get(
+          Uri.parse("http://worldtimeapi.org/api/timezone/Europe/Istanbul"));
+      Map worldData = jsonDecode(response.body);
+      now = DateTime(
+        int.parse(worldData['datetime'].substring(0, 4)),
+        int.parse(worldData['datetime'].substring(5, 7)),
+        int.parse(worldData['datetime'].substring(8, 10)),
+        int.parse(worldData['datetime'].substring(11, 13)),
+        int.parse(worldData['datetime'].substring(14, 16)),
+        int.parse(worldData['datetime'].substring(17, 19)),
+      );
+    } catch (e) {
+      now = null;
+      Funcs().showSnackBar(context,
+          "Unexpected error, please try again later or check app update!");
+    }
+
+    return now;
+  }
+
   ///* [pickMedia] this method gets or take photo and crop it
   static Future<File?> pickMedia({
     required bool isGallery,

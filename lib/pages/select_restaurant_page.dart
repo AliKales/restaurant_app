@@ -44,6 +44,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
         setState(() {
           isLoggedIn = true;
         });
+
         goToPersonalManagerPage();
       }
     });
@@ -164,7 +165,8 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
                   progress1 = true;
                 });
                 Auth()
-                    .createUserWithEmail(tECEMail.text, tECPassword.text)
+                    .createUserWithEmail(
+                        tECEMail.text, tECPassword.text, context)
                     .then((value) {
                   if (value) {
                     // if returns true, that means verification has been sent
@@ -208,6 +210,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
   }
 
   void emailVerificationChecker() {
+    box.put("infoRestaurant", {});
     Auth().checkEMailVerification().then((value) {
       if (value) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -219,8 +222,8 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
   }
 
   void goToPersonalManagerPage() {
-    print(tECPassword.text);
     box.put("password", tECPassword.text);
+    box.put("restaurant", false);
     Funcs().navigatorPushReplacement(context, const PersonelManagerPage());
   }
 }

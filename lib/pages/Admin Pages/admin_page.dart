@@ -21,7 +21,7 @@ import 'package:restaurant_app/pages/payment_page.dart';
 import 'package:restaurant_app/size.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({Key? key,required this.isPaid}) : super(key: key);
+  const AdminPage({Key? key, required this.isPaid}) : super(key: key);
   final bool isPaid;
 
   @override
@@ -41,6 +41,9 @@ class _AdminPageState extends State<AdminPage> {
 
   bool progress1 = false;
   bool progress2 = false;
+  bool progress3 = false;
+
+  bool paymentForMoreDays = false;
 
   int drawerTappedIndex = 0;
 
@@ -90,50 +93,68 @@ class _AdminPageState extends State<AdminPage> {
         Funcs().showSnackBar(context, "ERROR");
       } else if (purchaseDetails.status == PurchaseStatus.purchased) {
         if (purchaseDetails.pendingCompletePurchase) {
-          Firestore().createARestaurant(valueRestaurant!).then((value) async {
-            if (value.runtimeType == Restaurant) {
-              await InAppPurchase.instance
-                  .completePurchase(purchaseDetails)
-                  .then((v) {
-                box.put("restaurant", value);
-                Funcs().showSnackBar(context, "Your resaurant is ready.");
-                futureBuilder();
-              }).onError((error, stackTrace) async {
-                await Firestore().deleteRestaurant(context);
-                SimpleUIs.showCustomDialog(
-                    context: context,
-                    title: "ERROR!",
-                    actions: [
-                      CustomGradientButton(
-                        context: context,
-                        text: "Copy Mail",
-                        func: () {
-                          Clipboard.setData(ClipboardData(
-                              text: "suggestionsandhelp@hotmail.com"));
-                          Funcs().showSnackBar(context, "E-Mail copied");
-                        },
-                      ),
-                      CustomGradientButton(
-                        context: context,
-                        text: "Copy Instagram",
-                        func: () {
-                          Clipboard.setData(ClipboardData(text: "caroby2"));
-                          Funcs().showSnackBar(context, "Instagram copied");
-                        },
-                      )
-                    ],
-                    content: Text(
-                        "We couldn't create your Restaurant. Please check if you paid or not. If you have already paid and your Restaurant couldn't be created, please contact us via E-Mail or Instagram\nE-mail: suggestionsandhelp@hotmail.com\nInstagram: caroby2",
-                        style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                            color: color4, fontWeight: FontWeight.bold)));
-              });
-            } else {
-              setState(() {
-                progress2 = false;
-              });
-              Funcs().showSnackBar(context, "Error, try again later.");
-            }
-          });
+          if (paymentForMoreDays) {
+            Firestore().updateRestaurant(context, {
+              'paymentDate': DateTime.parse(valueRestaurant!.paymentDate)
+                  .add(const Duration(days: 30))
+                  .toIso8601String()
+            }).then((value) async {
+              if (value) {
+                await InAppPurchase.instance
+                    .completePurchase(purchaseDetails)
+                    .then((v) {
+                  valueRestaurant!.paymentDate =
+                      DateTime.parse(valueRestaurant!.paymentDate)
+                          .add(const Duration(days: 30))
+                          .toIso8601String();
+                  restaurant = valueRestaurant;
+                  box.put("restaurant", valueRestaurant);
+                  Funcs().showSnackBar(
+                      context, "Your payment has been successfully received.");
+                  setState(() {
+                    progress3 = false;
+                    paymentForMoreDays = false;
+                  });
+                }).onError((error, stackTrace) async {
+                  await Firestore().updateRestaurant(context, {
+                    'paymentDate': DateTime.parse(valueRestaurant!.paymentDate)
+                        .subtract(const Duration(days: 30))
+                        .toIso8601String()
+                  });
+                  setState(() {
+                    progress3 = false;
+                  });
+                  showErrorMessage();
+                });
+              } else {
+                setState(() {
+                  progress3 = false;
+                });
+                showErrorMessage();
+              }
+            });
+          } else {
+            Firestore().createARestaurant(valueRestaurant!).then((value) async {
+              if (value.runtimeType == Restaurant) {
+                await InAppPurchase.instance
+                    .completePurchase(purchaseDetails)
+                    .then((v) {
+                  box.put("restaurant", value);
+                  Funcs().showSnackBar(context, "Your resaurant is ready.");
+                  futureBuilder();
+                }).onError((error, stackTrace) async {
+                  await Firestore().deleteRestaurant(context);
+                  showErrorMessage();
+                });
+              } else {
+                setState(() {
+                  progress2 = false;
+                });
+                Funcs().showSnackBar(context, "Error, try again later.");
+                showErrorMessage();
+              }
+            });
+          }
         }
       } else if (purchaseDetails.status == PurchaseStatus.restored) {
         print("RESTORED");
@@ -298,7 +319,9 @@ class _AdminPageState extends State<AdminPage> {
             .headline5!
             .copyWith(color: Colors.red, fontWeight: FontWeight.bold),
       ));
-    } else if (builder == Builders.noData||!widget.isPaid) {
+    } else if (builder == Builders.noData ||
+        !widget.isPaid ||
+        paymentForMoreDays) {
       return widgetMustBuy(context);
     } else {
       return buildPageView();
@@ -317,6 +340,11 @@ class _AdminPageState extends State<AdminPage> {
               progress1 = true;
             });
           },
+          goToPayment: () {
+            setState(() {
+              paymentForMoreDays = true;
+            });
+          },
         ),
         FoodMenuPage(restaurant: restaurant!),
         FoodCategoriesPage(restaurant: restaurant!),
@@ -333,7 +361,9 @@ class _AdminPageState extends State<AdminPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "It seems like you haven't payed yet. If you want to keep using this app, you have to pay. You have to pay once a month.",
+            paymentForMoreDays
+                ? "You can pay here to get access for another 30 days."
+                : "It seems like you haven't payed yet. If you want to keep using this app, you have to pay. You have to pay once a month.",
             style: Theme.of(context)
                 .textTheme
                 .headline6!
@@ -342,14 +372,36 @@ class _AdminPageState extends State<AdminPage> {
           SizedBox(
             height: SizeConfig.safeBlockVertical! * 5,
           ),
-          CustomGradientButton(
-            context: context,
-            text: "PAY",
-            loading: progress2,
-            func: () async {
-              pay();
-            },
-          )
+          SimpleUIs().widgetWithProgress(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Visibility(
+                  visible: paymentForMoreDays,
+                  child: CustomGradientButton(
+                    context: context,
+                    text: "CANCEL",
+                    color: color1,
+                    isOutlined: true,
+                    func: () {
+                      setState(() {
+                        paymentForMoreDays = false;
+                      });
+                    },
+                  ),
+                ),
+                CustomGradientButton(
+                  context: context,
+                  text: "PAY",
+                  loading: progress2,
+                  func: () async {
+                    pay();
+                  },
+                ),
+              ],
+            ),
+            progress3,
+          ),
         ],
       ),
     );
@@ -359,29 +411,79 @@ class _AdminPageState extends State<AdminPage> {
 
   //HERE func for Personnels from database
 
+  void showErrorMessage() {
+    SimpleUIs.showCustomDialog(
+        context: context,
+        title: "ERROR!",
+        actions: [
+          CustomGradientButton(
+            context: context,
+            text: "Copy Mail",
+            func: () {
+              Clipboard.setData(
+                  ClipboardData(text: "suggestionsandhelp@hotmail.com"));
+              Funcs().showSnackBar(context, "E-Mail copied");
+            },
+          ),
+          CustomGradientButton(
+            context: context,
+            text: "Copy Instagram",
+            func: () {
+              Clipboard.setData(ClipboardData(text: "caroby2"));
+              Funcs().showSnackBar(context, "Instagram copied");
+            },
+          )
+        ],
+        content: Text(
+            "Unexpected ERROR. Please check if you paid or not. If you have already paid and you saw an ERROR, please contact us via E-Mail or Instagram\nE-mail: suggestionsandhelp@hotmail.com\nInstagram: caroby2",
+            style: Theme.of(context)
+                .textTheme
+                .subtitle1!
+                .copyWith(color: color4, fontWeight: FontWeight.bold)));
+  }
+
   Future pay() async {
-    Funcs().navigatorPush(context, const PaymentPage()).then((value) async {
-      if (value.runtimeType == Restaurant) {
-        setState(() {
-          progress2 = true;
-        });
-        valueRestaurant=value;
-        const Set<String> _kIds = <String>{'deneme'};
-        final ProductDetailsResponse response =
-            await InAppPurchase.instance.queryProductDetails(_kIds);
-        if (response.notFoundIDs.isNotEmpty) {
-          // Handle the error.
+    if (paymentForMoreDays) {
+      setState(() {
+        progress3 = true;
+      });
+      await Firestore().getRestaurant(context).then((value) {
+        if (value != null && value.password != "ozel-admin-code:31") {
+          pay2(value);
+        } else {
+          setState(() {
+            progress3 = false;
+          });
         }
-        List<ProductDetails> products = response.productDetails;
+      });
+    } else {
+      Funcs().navigatorPush(context, const PaymentPage()).then((value) async {
+        pay2(value);
+      });
+    }
+  }
 
-        final ProductDetails productDetails =
-            products[0]; // Saved earlier from queryProductDetails().
-
-        final PurchaseParam purchaseParam =
-            PurchaseParam(productDetails: productDetails);
-        InAppPurchase.instance.buyConsumable(purchaseParam: purchaseParam);
+  Future pay2(value) async {
+    if (value.runtimeType == Restaurant) {
+      setState(() {
+        progress2 = true;
+      });
+      valueRestaurant = value;
+      const Set<String> _kIds = <String>{'deneme'};
+      final ProductDetailsResponse response =
+          await InAppPurchase.instance.queryProductDetails(_kIds);
+      if (response.notFoundIDs.isNotEmpty) {
+        // Handle the error.
       }
-    });
+      List<ProductDetails> products = response.productDetails;
+
+      final ProductDetails productDetails =
+          products[0]; // Saved earlier from queryProductDetails().
+
+      final PurchaseParam purchaseParam =
+          PurchaseParam(productDetails: productDetails);
+      InAppPurchase.instance.buyConsumable(purchaseParam: purchaseParam);
+    }
   }
 
   void drawerTapped(int index) {

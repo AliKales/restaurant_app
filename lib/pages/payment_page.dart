@@ -136,7 +136,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                   createdDate: value.toIso8601String(),
                                   email: Auth().getEMail(),
                                   paymentDate: value
-                                      .add(const Duration(days: 31))
+                                      .add(const Duration(days: 30))
                                       .toIso8601String()));
                         } else {
                           setState(() {

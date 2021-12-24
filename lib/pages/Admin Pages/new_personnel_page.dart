@@ -15,10 +15,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class NewPersonnelPage extends StatefulWidget {
   const NewPersonnelPage(
-      {Key? key, required this.restaurant, required this.logedIn})
+      {Key? key, required this.restaurant, required this.logedIn, required this.goToPayment})
       : super(key: key);
   final Restaurant restaurant;
   final Function() logedIn;
+  final Function() goToPayment;
 
   @override
   _NewPersonnelPageState createState() => _NewPersonnelPageState();
@@ -33,11 +34,21 @@ class _NewPersonnelPageState extends State<NewPersonnelPage>
   //progress3 is for button 'load more'
   bool? progress3 = false;
   bool progress4 = false;
+  bool progress5 = false;
   bool isPasswordShown = true;
+
+  int? daysLeft;
 
   TextEditingController tECPassword = TextEditingController();
 
   List<Personnel> personnels = [];
+
+  @override
+  void initState() {
+    calculateDays();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -61,9 +72,40 @@ class _NewPersonnelPageState extends State<NewPersonnelPage>
                       .copyWith(color: color4, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(
-                  height: SizeConfig.safeBlockVertical! * 6,
+                  height: SizeConfig.safeBlockVertical! * 3,
                 ),
                 //button new personnel
+                progress5
+                    ? CustomGradientButton(
+                        context: context,
+                        text: "TRY AGAIN",
+                        color: color1,
+                        isOutlined: true,
+                        func: () {
+                          setState(() {
+                            progress5 = false;
+                          });
+                          calculateDays();
+                        },
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            daysLeft == null
+                                ? "Loading.."
+                                : "$daysLeft Days Left",
+                            style: Theme.of(context)
+                                .textTheme
+                                .subtitle1!
+                                .copyWith(color: color4),
+                          ),
+                          TextButton(onPressed: (){widget.goToPayment.call();}, child: Text("Pay",style: Theme.of(context).textTheme.subtitle1!.copyWith(color: color2),))
+                        ],
+                      ),
+                SizedBox(
+                  height: SizeConfig.safeBlockVertical! * 5,
+                ),
                 Visibility(
                   visible: !progress2,
                   child: CustomGradientButton(
@@ -280,6 +322,23 @@ class _NewPersonnelPageState extends State<NewPersonnelPage>
   }
 
   //FUNCTIONSSSSSSSSSSSSS
+  Future calculateDays() async {
+    await Funcs()
+        .getCurrentGlobalTimeForRestaurantCreating(context)
+        .then((value) {
+      if (value == null) {
+        progress5 = true;
+      } else {
+        daysLeft = DateTime.parse(widget.restaurant.paymentDate)
+            .difference(value)
+            .inDays;
+      }
+    });
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   Future personnelsCheckFromDB() async {
     String id = "";
     if (personnels.isNotEmpty) {

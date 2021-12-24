@@ -36,6 +36,20 @@ class Firestore {
     }
   }
 
+  Future<bool> updateRestaurant(context,updateValue) async {
+    try {
+      await firestore
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .update(updateValue);
+      return true;
+    } on FirebaseException catch (e) {
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future deleteRestaurant(context) async {
     try {
       await firestore.collection("restaurants").doc(Auth().getEMail()).delete();

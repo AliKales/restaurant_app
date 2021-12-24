@@ -358,15 +358,10 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
 
   //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
   Future getRestaurantInfos() async {
-    int inDays = 1;
     Map map = box.get('infoRestaurant') ?? {};
-    if (map.isNotEmpty) {
-      inDays =
-          DateTime.now().difference(DateTime.parse(map['dateTime'])).inDays;
-    }
-    if (inDays == 0) {
+    if (DateTime.parse(map['dateTime']).day == DateTime.now().day) {
       restaurant = map['restaurant'];
-      permission1=true;
+      permission1 = true;
     } else {
       setState(() {
         progress2 = false;
@@ -376,10 +371,6 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
         progress2 = true;
       }
       if (restaurant != null && restaurant!.password != "ozel-admin-code:31") {
-        box.put("infoRestaurant", {
-          'dateTime': DateTime.now().toIso8601String(),
-          'restaurant': restaurant
-        });
         await Funcs()
             .getCurrentGlobalTimeForRestaurantCreating(context)
             .then((value) {
@@ -388,6 +379,10 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             int howManyDays = paymentDate.difference(value).inDays;
             if (howManyDays > 0) {
               permission1 = true;
+              box.put("infoRestaurant", {
+                'dateTime': DateTime.now().toIso8601String(),
+                'restaurant': restaurant
+              });
             }
           } else {
             progress2 = true;

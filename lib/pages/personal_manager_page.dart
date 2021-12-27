@@ -67,9 +67,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
         appBar: AppbarForPersons(
           text: "WHO ARE YOU?",
           onDoubleTap: () async {
-            if (restaurant == null) {
-              return;
-            } else if (restaurant!.password == "ozel-admin-code:31") {
+            if (restaurant == null ||
+                restaurant!.password == "ozel-admin-code:31") {
               await signOut();
             } else {
               await showGeneralDialog(
@@ -234,7 +233,9 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                     mainAxisSpacing: SizeConfig().setHight(5),
                     crossAxisSpacing: SizeConfig().setWidth(5)),
                 itemBuilder: (context, index) {
-                  return widgetContainerForPerson(persons[index]);
+                  return kIsWeb && persons[index]['text'] == "Admin"
+                      ? const SizedBox.shrink()
+                      : widgetContainerForPerson(persons[index]);
                 },
               ),
             ),
@@ -254,7 +255,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                     .textTheme
                     .headline5!
                     .copyWith(color: color4, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.left,
+                textAlign: TextAlign.left,
               ),
             ),
             SizedBox(height: SizeConfig().setHight(3)),

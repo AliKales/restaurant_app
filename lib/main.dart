@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         scrollBehavior: kIsWeb ? MyScrollBehavior() : null,
-        title: 'Flutter Demo',
+        title: 'Restaurant&Cafe App',
         theme: ThemeData(scaffoldBackgroundColor: color1),
         home: const SelectRestaurantPage());
   }

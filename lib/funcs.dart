@@ -10,8 +10,11 @@ import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/models/personnel.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class Funcs {
+  final String url = "http://worldtimeapi.org/api/timezone/Europe/Istanbul";
+
   Future<dynamic> navigatorPush(context, page) async {
     MaterialPageRoute route = MaterialPageRoute(builder: (context) => page);
     var object = await Navigator.push(context, route);
@@ -52,7 +55,10 @@ class Funcs {
     DateTime now;
     try {
       Response response = await get(
-          Uri.parse("http://worldtimeapi.org/api/timezone/Europe/Istanbul"));
+        Uri.parse(kIsWeb
+            ? "https://cors-anywhere.herokuapp.com/http://worldtimeapi.org/api/timezone/Europe/Istanbul"
+            : "http://worldtimeapi.org/api/timezone/Europe/Istanbul"),
+      );
       Map worldData = jsonDecode(response.body);
       now = DateTime(
         int.parse(worldData['datetime'].substring(0, 4)),
@@ -75,7 +81,10 @@ class Funcs {
     DateTime? now;
     try {
       Response response = await get(
-          Uri.parse("http://worldtimeapi.org/api/timezone/Europe/Istanbul"));
+        Uri.parse(kIsWeb
+            ? "https://cors-anywhere.herokuapp.com/http://worldtimeapi.org/api/timezone/Europe/Istanbul"
+            : "http://worldtimeapi.org/api/timezone/Europe/Istanbul"),
+      );
       Map worldData = jsonDecode(response.body);
       now = DateTime(
         int.parse(worldData['datetime'].substring(0, 4)),
@@ -133,11 +142,10 @@ class Funcs {
     return returnList;
   }
 
-  static void showSupportErrorMessage({
-    required final context,
-    required final String text,
-    required final String title
-  }) async {
+  static void showSupportErrorMessage(
+      {required final context,
+      required final String text,
+      required final String title}) async {
     SimpleUIs.showCustomDialog(
         context: context,
         title: title,
@@ -148,7 +156,7 @@ class Funcs {
             func: () {
               Clipboard.setData(
                   ClipboardData(text: "suggestionsandhelp@hotmail.com"));
-                  Navigator.pop(context);
+              Navigator.pop(context);
               Funcs().showSnackBar(context, "E-Mail copied");
             },
           ),
@@ -162,8 +170,7 @@ class Funcs {
             },
           )
         ],
-        content: Text(
-            text,
+        content: Text(text,
             style: Theme.of(context)
                 .textTheme
                 .subtitle1!

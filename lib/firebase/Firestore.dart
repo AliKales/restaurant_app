@@ -483,7 +483,7 @@ class Firestore {
         Funcs().showSnackBar(context, "No Data!");
         return null;
       }
-    } on FirebaseException {
+    } on FirebaseException catch(e){
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return null;
     } catch (e) {

@@ -223,7 +223,8 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
 
   void goToPersonalManagerPage() {
     box.put("password", tECPassword.text);
-    box.put("restaurant", false);
+    box.delete("restaurant");
+    box.delete('infoRestaurant');
     Funcs().navigatorPushReplacement(context, const PersonelManagerPage());
   }
 }

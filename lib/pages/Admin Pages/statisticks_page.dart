@@ -191,30 +191,47 @@ class _StatisticksPageState extends State<StatisticksPage> {
             SizedBox(
               height: SizeConfig().setHight(3),
             ),
+            widgetTextInfoForCharts("All products sold this year:"),
             ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: allFoods.length,
               itemBuilder: (context, index) {
-                return Text(
-                  allFoods[index]['name'] +
-                      " " +
-                      Funcs().formatMoney(allFoods[index]['price']) +
-                      " - Count: " +
-                      allFoods[index]['count'].toString(),
-                  style: Theme.of(context)
-                      .textTheme
-                      .headline6!
-                      .copyWith(color: color4),
+                return Text.rich(
+                  TextSpan(
+                    text: allFoods[index]['name'] + " ",
+                    style: Theme.of(context)
+                        .textTheme
+                        .headline6!
+                        .copyWith(color: color3),
+                    children: [
+                      TextSpan(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(color: color2),
+                          text: Funcs().formatMoney(allFoods[index]['price'])),
+                      TextSpan(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headline6!
+                            .copyWith(color: color4),
+                        text:
+                            " - Count: " + allFoods[index]['count'].toString(),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
             const Divider(
               color: Colors.black,
-              height: 1,
+              height: 15,
             ),
             SizedBox(
               height: SizeConfig().setHight(3),
             ),
+            widgetTextInfoForCharts("All products sold this month:"),
             StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
                 return Column(
@@ -260,6 +277,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
             SizedBox(
               height: SizeConfig().setHight(5),
             ),
+            widgetTextInfoForCharts("This year's sales of the product:"),
             StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
               return Column(
@@ -296,8 +314,9 @@ class _StatisticksPageState extends State<StatisticksPage> {
             }),
             const Divider(
               color: Colors.black,
-              height: 1,
+              height: 10,
             ),
+            widgetTextInfoForCharts("Distribution of this month's sales amount by days:"),
             StatefulBuilder(
               builder: (context, setState) => Column(
                 children: [
@@ -393,6 +412,10 @@ class _StatisticksPageState extends State<StatisticksPage> {
             SizedBox(
               height: SizeConfig().setHight(3),
             ),
+            widgetTextInfoForCharts("Distribution of this year's sales amount by months:"),
+            SizedBox(
+              height: SizeConfig().setHight(5),
+            ),
             kIsWeb
                 ? Row(
                     children: [
@@ -419,6 +442,19 @@ class _StatisticksPageState extends State<StatisticksPage> {
                   )
           ],
         ),
+      ),
+    );
+  }
+
+  Align widgetTextInfoForCharts(String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: Theme.of(context)
+            .textTheme
+            .headline6!
+            .copyWith(color: color4, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -678,14 +714,15 @@ class _StatisticksPageState extends State<StatisticksPage> {
   }
 
   void list3(StateSetter setState) {
+    int counter = 0;
     for (var i = 0; i < orders.length; i++) {
+      counter = 0;
       for (var item in orders[i]) {
-        int counter = 0;
         for (var item in item['foods']) {
           counter += item['count'] as int;
         }
-        chartData[i].y = counter.toDouble();
       }
+      chartData[i].y = counter.toDouble();
     }
     setState(() {});
   }

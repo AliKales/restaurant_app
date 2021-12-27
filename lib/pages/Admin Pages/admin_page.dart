@@ -87,10 +87,12 @@ class _AdminPageState extends State<AdminPage> {
       if (purchaseDetails.status == PurchaseStatus.canceled) {
         setState(() {
           progress2 = false;
+          progress3=false;
         });
       } else if (purchaseDetails.status == PurchaseStatus.error) {
         setState(() {
           progress2 = false;
+          progress3=false;
         });
         Funcs().showSnackBar(context, "ERROR");
       } else if (purchaseDetails.status == PurchaseStatus.purchased) {
@@ -151,6 +153,7 @@ class _AdminPageState extends State<AdminPage> {
               } else {
                 setState(() {
                   progress2 = false;
+                  progress3=false;
                 });
                 Funcs().showSnackBar(context, "Error, try again later.");
                 showErrorMessage();
@@ -341,7 +344,9 @@ class _AdminPageState extends State<AdminPage> {
           ),
           SimpleUIs().widgetWithProgress(
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: paymentForMoreDays
+                  ? MainAxisAlignment.spaceEvenly
+                  : MainAxisAlignment.center,
               children: [
                 Visibility(
                   visible: paymentForMoreDays,
@@ -380,7 +385,9 @@ class _AdminPageState extends State<AdminPage> {
 
   void showErrorMessage() {
     Funcs.showSupportErrorMessage(
-        context: context,title: "ERROR!",text:
+        context: context,
+        title: "ERROR!",
+        text:
             "Unexpected ERROR. Please check if you paid or not. If you have already paid and you saw an ERROR, please contact us via E-Mail or Instagram\nE-mail: suggestionsandhelp@hotmail.com\nInstagram: caroby2");
   }
 
@@ -414,7 +421,7 @@ class _AdminPageState extends State<AdminPage> {
         progress2 = true;
       });
       valueRestaurant = value;
-      const Set<String> _kIds = <String>{'deneme'};
+      const Set<String> _kIds = <String>{'first_use', 'monthly_use'};
       final ProductDetailsResponse response =
           await InAppPurchase.instance.queryProductDetails(_kIds);
       if (response.notFoundIDs.isNotEmpty) {
@@ -422,8 +429,9 @@ class _AdminPageState extends State<AdminPage> {
       }
       List<ProductDetails> products = response.productDetails;
 
-      final ProductDetails productDetails =
-          products[0]; // Saved earlier from queryProductDetails().
+      final ProductDetails productDetails = restaurant==null
+          ? products[0]
+          : products[1]; // Saved earlier from queryProductDetails().
 
       final PurchaseParam purchaseParam =
           PurchaseParam(productDetails: productDetails);

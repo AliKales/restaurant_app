@@ -9,7 +9,8 @@ class AppbarForPersons extends StatelessWidget implements PreferredSizeWidget {
       this.text = "",
       this.isPushed = false,
       this.actions,
-      this.functionForLeadingIcon})
+      this.functionForLeadingIcon,
+      this.onDoubleTap})
       : super(key: key);
 
   final String text;
@@ -18,6 +19,8 @@ class AppbarForPersons extends StatelessWidget implements PreferredSizeWidget {
   ///* [isPushed] if it's true, it deletes action icon
   ///* default is false.
   final bool isPushed;
+
+  final Function()? onDoubleTap;
 
   ///* [functionForLeadingIcon] if there is specific code
   final Function()? functionForLeadingIcon;
@@ -72,8 +75,12 @@ class AppbarForPersons extends StatelessWidget implements PreferredSizeWidget {
                     Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
                   },
                   onDoubleTap: () {
-                    Funcs().navigatorPushReplacement(
-                        context, const PersonelManagerPage());
+                    if (onDoubleTap != null) {
+                      onDoubleTap!.call();
+                    } else {
+                      Funcs().navigatorPushReplacement(
+                          context, const PersonelManagerPage());
+                    }
                   },
                   child: const Padding(
                     padding: EdgeInsets.only(right: 12),

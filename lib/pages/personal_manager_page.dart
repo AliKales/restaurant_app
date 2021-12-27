@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:restaurant_app/UIs/appbar_persons.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
@@ -47,7 +48,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     Timer(const Duration(milliseconds: 200),
         () => _animationController!.forward());
     if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-      //FirebaseAuth.instance.currentUser!.sendEmailVerification();
+      FirebaseAuth.instance.currentUser!.sendEmailVerification();
     }
     WidgetsBinding.instance!.addPostFrameCallback((_) => getRestaurantInfos());
     super.initState();
@@ -63,118 +64,100 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   Widget build(BuildContext context) {
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          backgroundColor: color1,
-          title: const Text("WHO ARE YOU?"),
-          centerTitle: true,
-          elevation: 1,
-          actions: [
-            // exit button
-            InkWell(
-              onTap: () {
-                Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
-              },
-              onDoubleTap: () async {
-                if (restaurant == null) {
-                  return;
-                } else if (restaurant!.password == "ozel-admin-code:31") {
-                  await signOut();
-                } else {
-                  await showGeneralDialog(
-                    context: context,
-                    barrierLabel: "Barrier",
-                    barrierDismissible: false,
-                    barrierColor: Colors.black.withOpacity(0.5),
-                    transitionDuration: const Duration(milliseconds: 500),
-                    pageBuilder: (_, __, ___) {
-                      return WillPopScope(
-                        onWillPop: () async => false,
-                        child: Material(
-                          color: Colors.black.withOpacity(0.9),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                TextField(
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headline6!
-                                      .copyWith(color: color4),
-                                  cursorColor: color4,
-                                  controller: tECPasswordToExit,
-                                  decoration: const InputDecoration(
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: color4),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: color4),
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.lock_outline_rounded,
-                                      color: color4,
-                                      size: 30,
-                                    ),
-                                    alignLabelWithHint: true,
-                                    hintText: "Password to sign out",
-                                    hintStyle: TextStyle(color: Colors.white60),
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.all(15),
-                                  ),
+        appBar: AppbarForPersons(
+          text: "WHO ARE YOU?",
+          onDoubleTap: () async {
+            if (restaurant == null) {
+              return;
+            } else if (restaurant!.password == "ozel-admin-code:31") {
+              await signOut();
+            } else {
+              await showGeneralDialog(
+                context: context,
+                barrierLabel: "Barrier",
+                barrierDismissible: false,
+                barrierColor: Colors.black.withOpacity(0.5),
+                transitionDuration: const Duration(milliseconds: 500),
+                pageBuilder: (_, __, ___) {
+                  return WillPopScope(
+                    onWillPop: () async => false,
+                    child: Material(
+                      color: Colors.black.withOpacity(0.9),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextField(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline6!
+                                  .copyWith(color: color4),
+                              cursorColor: color4,
+                              controller: tECPasswordToExit,
+                              decoration: const InputDecoration(
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: color4),
                                 ),
-                                SizedBox(
-                                  height: SizeConfig.safeBlockVertical! * 6,
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: color4),
                                 ),
-                                CustomGradientButton(
-                                  context: context,
-                                  text: "SIGN OUT",
-                                  func: () {
-                                    Navigator.pop(context);
-                                  },
+                                prefixIcon: Icon(
+                                  Icons.lock_outline_rounded,
+                                  color: color4,
+                                  size: 30,
                                 ),
-                                SizedBox(
-                                  height: SizeConfig.safeBlockVertical! * 3,
-                                ),
-                                CustomGradientButton(
-                                  context: context,
-                                  text: "CANCEL",
-                                  isOutlined: true,
-                                  color: Colors.black.withOpacity(0.9),
-                                  func: () {
-                                    tECPasswordToExit.text =
-                                        "this is an admin code";
-                                    Navigator.pop(context);
-                                  },
-                                )
-                              ],
+                                alignLabelWithHint: true,
+                                hintText: "Password to sign out",
+                                hintStyle: TextStyle(color: Colors.white60),
+                                isDense: true,
+                                contentPadding: EdgeInsets.all(15),
+                              ),
                             ),
-                          ),
+                            SizedBox(
+                              height: SizeConfig.safeBlockVertical! * 6,
+                            ),
+                            CustomGradientButton(
+                              context: context,
+                              text: "SIGN OUT",
+                              func: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                            SizedBox(
+                              height: SizeConfig.safeBlockVertical! * 3,
+                            ),
+                            CustomGradientButton(
+                              context: context,
+                              text: "CANCEL",
+                              isOutlined: true,
+                              color: Colors.black.withOpacity(0.9),
+                              func: () {
+                                tECPasswordToExit.text =
+                                    "this is an admin code";
+                                Navigator.pop(context);
+                              },
+                            )
+                          ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   );
-                  if (tECPasswordToExit.text == "this is an admin code") {
-                    //here nothing special happens, just for cancel
-                    tECPasswordToExit.clear();
-                  } else if (tECPasswordToExit.text.isEmpty) {
-                    Funcs().showSnackBar(context, "Password can't be empty!");
-                  } else if (tECPasswordToExit.text == restaurant!.password) {
-                    await signOut();
-                  } else {
-                    Funcs().showSnackBar(context, "Wrong password!");
-                  }
-                  tECPasswordToExit.clear();
-                }
-              },
-              child: const Padding(
-                padding: EdgeInsets.only(right: 12),
-                child: Icon(
-                  Icons.exit_to_app_rounded,
-                  color: color4,
-                ),
-              ),
-            ),
-          ],
+                },
+              );
+              if (tECPasswordToExit.text == "this is an admin code") {
+                //here nothing special happens, just for cancel
+                tECPasswordToExit.clear();
+              } else if (tECPasswordToExit.text.isEmpty) {
+                Funcs().showSnackBar(context, "Password can't be empty!");
+              } else if (tECPasswordToExit.text == restaurant!.password) {
+                await signOut();
+              } else {
+                Funcs().showSnackBar(context, "Wrong password!");
+              }
+              tECPasswordToExit.clear();
+            }
+          },
         ),
         body: body());
   }
@@ -263,12 +246,16 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              "Please verify your e-mail first!",
-              style: Theme.of(context)
-                  .textTheme
-                  .headline5!
-                  .copyWith(color: color4, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Please verify your e-mail first!\nWe sent you an e-mail to verify your account.\nDon't forget the check your Junk E-Mails.",
+                style: Theme.of(context)
+                    .textTheme
+                    .headline5!
+                    .copyWith(color: color4, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.left,
+              ),
             ),
             SizedBox(height: SizeConfig().setHight(3)),
             CustomGradientButton(
@@ -360,7 +347,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
   Future getRestaurantInfos() async {
     Map map = box.get('infoRestaurant') ?? {};
-    if (map.isNotEmpty&&DateTime.parse(map['dateTime']).day == DateTime.now().day) {
+    if (map.isNotEmpty &&
+        DateTime.parse(map['dateTime']).day == DateTime.now().day) {
       restaurant = map['restaurant'];
       permission1 = true;
     } else {

@@ -42,4 +42,7 @@ class Auth {
   String getEMail(){
     return FirebaseAuth.instance.currentUser?.email??"";
   }
+  String getUID(){
+    return FirebaseAuth.instance.currentUser?.uid??"";
+  }
 }

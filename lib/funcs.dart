@@ -2,9 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:restaurant_app/UIs/custom_gradient_button.dart';
+import 'package:restaurant_app/UIs/simple_uis.dart';
+import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/models/personnel.dart';
 
 class Funcs {
@@ -19,7 +23,7 @@ class Funcs {
     Navigator.pushReplacement(context, route);
   }
 
-  String formatMoney(money){
+  String formatMoney(money) {
     return NumberFormat.simpleCurrency().format(money);
   }
 
@@ -127,5 +131,42 @@ class Funcs {
       returnList.add(Personnel.fromJson(item));
     }
     return returnList;
+  }
+
+  static void showSupportErrorMessage({
+    required final context,
+    required final String text,
+    required final String title
+  }) async {
+    SimpleUIs.showCustomDialog(
+        context: context,
+        title: title,
+        actions: [
+          CustomGradientButton(
+            context: context,
+            text: "Copy Mail",
+            func: () {
+              Clipboard.setData(
+                  ClipboardData(text: "suggestionsandhelp@hotmail.com"));
+                  Navigator.pop(context);
+              Funcs().showSnackBar(context, "E-Mail copied");
+            },
+          ),
+          CustomGradientButton(
+            context: context,
+            text: "Copy Instagram",
+            func: () {
+              Clipboard.setData(ClipboardData(text: "caroby2"));
+              Navigator.pop(context);
+              Funcs().showSnackBar(context, "Instagram copied");
+            },
+          )
+        ],
+        content: Text(
+            text,
+            style: Theme.of(context)
+                .textTheme
+                .subtitle1!
+                .copyWith(color: color4, fontWeight: FontWeight.bold)));
   }
 }

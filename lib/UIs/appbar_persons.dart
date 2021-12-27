@@ -18,6 +18,7 @@ class AppbarForPersons extends StatelessWidget implements PreferredSizeWidget {
   ///* [isPushed] if it's true, it deletes action icon
   ///* default is false.
   final bool isPushed;
+
   ///* [functionForLeadingIcon] if there is specific code
   final Function()? functionForLeadingIcon;
 
@@ -47,24 +48,42 @@ class AppbarForPersons extends StatelessWidget implements PreferredSizeWidget {
           : null,
       actions: isPushed
           ? actions ?? []
-          : actions ?? [
-              InkWell(
-                onTap: () {
-                  Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
-                },
-                onDoubleTap: () {
-                  Funcs().navigatorPushReplacement(
-                      context, const PersonelManagerPage());
-                },
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 12),
-                  child: Icon(
-                    Icons.exit_to_app_rounded,
+          : actions ??
+              [
+                IconButton(
+                  onPressed: () {
+                    Funcs.showSupportErrorMessage(
+                        context: context,
+                        title: "CONTACT US",
+                        text:
+                            "If you have any problem or something to ask, please contact us via E-Mail or Instagram\nE-mail: suggestionsandhelp@hotmail.com\nInstagram: caroby2");
+                  },
+                  padding: const EdgeInsets.only(right: 12),
+                  constraints: const BoxConstraints(),
+                  highlightColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  icon: const Icon(
+                    Icons.contact_support,
                     color: color4,
                   ),
                 ),
-              ),
-            ],
+                InkWell(
+                  onTap: () {
+                    Funcs().showSnackBar(context, "'DOUBLE TAP' to exit");
+                  },
+                  onDoubleTap: () {
+                    Funcs().navigatorPushReplacement(
+                        context, const PersonelManagerPage());
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Icon(
+                      Icons.exit_to_app_rounded,
+                      color: color4,
+                    ),
+                  ),
+                ),
+              ],
     );
   }
 }

@@ -18,7 +18,9 @@ import 'package:restaurant_app/pages/Admin%20Pages/food_menu_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/new_personnel_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/statisticks_page.dart';
 import 'package:restaurant_app/pages/payment_page.dart';
+import 'package:restaurant_app/pages/personal_manager_page.dart';
 import 'package:restaurant_app/size.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AdminPage extends StatefulWidget {
   const AdminPage({Key? key, required this.isPaid}) : super(key: key);
@@ -163,56 +165,21 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future futureBuilder() async {
-    try {
-      var valueFromHive = box.get("restaurant") ?? false;
-      //if no restaurant saved before then it returns false and it checks from database
-      if (valueFromHive == false) {
-        await reference
-            .doc(Auth().getEMail())
-            .get()
-            .then((DocumentSnapshot documentSnapshot) {
-          if (documentSnapshot.exists) {
-            setState(() {
-              restaurant = Restaurant.fromJson(documentSnapshot.data() as Map);
-              builder = Builders.done;
-            });
-          } else {
-            setState(() {
-              builder = Builders.noData;
-            });
-          }
+    //if no restaurant saved before then it returns false and it checks from database
+    await Firestore().getRestaurant(context).then((value) {
+      if (value == null) {
+        Funcs().navigatorPushReplacement(context, const PersonelManagerPage());
+      } else if (value.password == "ozel-admin-code:31") {
+        setState(() {
+          builder = Builders.noData;
         });
       } else {
-        await reference
-            .where('email', isEqualTo: valueFromHive.email)
-            .where('password', isNotEqualTo: valueFromHive.password)
-            .get()
-            .then((value) {
-          //if its empty that means password havent changed yet since its logged in
-          if (value.docs.isEmpty) {
-            setState(() {
-              restaurant = valueFromHive;
-              builder = Builders.done;
-            });
-          } else {
-            //if its not empty that means passwords has changed so here we get new data from database
-            for (var element in value.docs) {
-              setState(() {
-                restaurant = Restaurant.fromJson(element.data() as Map);
-                box.put("restaurant", restaurant);
-                builder = Builders.done;
-              });
-            }
-          }
-        }).catchError((e) {
-          print(e);
+        setState(() {
+          restaurant = value;
+          builder = Builders.done;
         });
       }
-    } catch (e) {
-      setState(() {
-        builder = Builders.hasError;
-      });
-    }
+    });
   }
 
   @override
@@ -412,38 +379,16 @@ class _AdminPageState extends State<AdminPage> {
   //HERE func for Personnels from database
 
   void showErrorMessage() {
-    SimpleUIs.showCustomDialog(
-        context: context,
-        title: "ERROR!",
-        actions: [
-          CustomGradientButton(
-            context: context,
-            text: "Copy Mail",
-            func: () {
-              Clipboard.setData(
-                  ClipboardData(text: "suggestionsandhelp@hotmail.com"));
-              Funcs().showSnackBar(context, "E-Mail copied");
-            },
-          ),
-          CustomGradientButton(
-            context: context,
-            text: "Copy Instagram",
-            func: () {
-              Clipboard.setData(ClipboardData(text: "caroby2"));
-              Funcs().showSnackBar(context, "Instagram copied");
-            },
-          )
-        ],
-        content: Text(
-            "Unexpected ERROR. Please check if you paid or not. If you have already paid and you saw an ERROR, please contact us via E-Mail or Instagram\nE-mail: suggestionsandhelp@hotmail.com\nInstagram: caroby2",
-            style: Theme.of(context)
-                .textTheme
-                .subtitle1!
-                .copyWith(color: color4, fontWeight: FontWeight.bold)));
+    Funcs.showSupportErrorMessage(
+        context: context,title: "ERROR!",text:
+            "Unexpected ERROR. Please check if you paid or not. If you have already paid and you saw an ERROR, please contact us via E-Mail or Instagram\nE-mail: suggestionsandhelp@hotmail.com\nInstagram: caroby2");
   }
 
   Future pay() async {
-    if (paymentForMoreDays) {
+    if (kIsWeb) {
+      Funcs().showSnackBar(context,
+          "Payment is only available on ANDROID DEVICES for security!");
+    } else if (paymentForMoreDays) {
       setState(() {
         progress3 = true;
       });

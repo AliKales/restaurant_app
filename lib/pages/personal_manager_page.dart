@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
+import 'package:restaurant_app/firebase/Auth.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/restaurant.dart';
@@ -359,7 +360,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
   Future getRestaurantInfos() async {
     Map map = box.get('infoRestaurant') ?? {};
-    if (DateTime.parse(map['dateTime']).day == DateTime.now().day) {
+    if (map.isNotEmpty&&DateTime.parse(map['dateTime']).day == DateTime.now().day) {
       restaurant = map['restaurant'];
       permission1 = true;
     } else {

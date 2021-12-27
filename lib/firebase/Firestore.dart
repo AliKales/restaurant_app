@@ -36,7 +36,33 @@ class Firestore {
     }
   }
 
-  Future<bool> updateRestaurant(context,updateValue) async {
+  Future<Restaurant?> checkAdminPassword(context,email,password) async {
+    try {
+      var value = await FirebaseFirestore.instance.collection('restaurants')
+          .where('email', isEqualTo: email)
+          .where('password', isNotEqualTo: password)
+          .limit(1)
+          .get();
+      if (value.docs.isEmpty) {
+        return Restaurant(
+            username: "username",
+            password: "ozel-admin-code:31",
+            restaurantName: "restaurantName",
+            createdDate: "createdDate",
+            email: "email",
+            paymentDate: "paymentDate");
+      }
+      return Restaurant.fromJson(value.docs[0].data());
+    } on FirebaseException catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    }
+  }
+
+  Future<bool> updateRestaurant(context, updateValue) async {
     try {
       await firestore
           .collection("restaurants")

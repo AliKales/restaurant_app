@@ -20,18 +20,19 @@ class OrderAdapter extends TypeAdapter<Order> {
       orderBy: fields[0] as String?,
       date: fields[1] as String?,
       id: fields[2] as String?,
-      foods: (fields[3] as List?)?.cast<dynamic>(),
-      price: fields[4] as double?,
+      foods: (fields[3] as List).cast<dynamic>(),
+      price: fields[4] as double,
       databaseReference: fields[5] as String?,
       idSearch: fields[6] as String,
-      note: fields[7] as String?,
+      note: fields[7] as String,
+      status: fields[8] as OrderStatus,
     );
   }
 
   @override
   void write(BinaryWriter writer, Order obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.orderBy)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class OrderAdapter extends TypeAdapter<Order> {
       ..writeByte(6)
       ..write(obj.idSearch)
       ..writeByte(7)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(8)
+      ..write(obj.status);
   }
 
   @override

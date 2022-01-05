@@ -2,11 +2,14 @@ import 'package:hive/hive.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
 
+
 class Lists {
   static Map? foods;
   static Map? categories;
 
   var box = Hive.box('database');
+
+  List roles = ["Select a role", "Waiter", "Chef", "Cashier"];
 
   Future<bool> getFoodsAndCategories(context) async {
     foods = box.get("foods") ??

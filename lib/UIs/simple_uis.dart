@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/size.dart';
 
+import 'custom_gradient_button.dart';
+
 class SimpleUIs {
   Widget progressIndicator() {
     return const Center(
@@ -33,6 +35,26 @@ class SimpleUIs {
             child: Center(
               child: progressIndicator(),
             ),
+          );
+        });
+  }
+
+  static Future showCustomGeneralDialog({
+    required context,
+    bool? barrierDismissible,
+    required Widget widget
+  }) async {
+    FocusScope.of(context).unfocus();
+    await showGeneralDialog(
+        barrierLabel: "Barrier",
+        barrierDismissible: barrierDismissible??false,
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionDuration: const Duration(milliseconds: 500),
+        context: context,
+        pageBuilder: (_, __, ___) {
+          return WillPopScope(
+            onWillPop: () async => barrierDismissible??false,
+            child: widget,
           );
         });
   }
@@ -146,7 +168,22 @@ class SimpleUIs {
       Widget? content,
       bool? barriedDismissible,
       bool? onWillPop,
-      List<Widget>? actions}) {
+      List<Widget>? actions,
+      bool activeCancelButton = false}) {
+    if (activeCancelButton && actions != null) {
+      actions.insert(
+        0,
+        CustomGradientButton(
+          context: context,
+          color: color1,
+          isOutlined: true,
+          text: "CANCEL",
+          func: () {
+            Navigator.pop(context);
+          },
+        ),
+      );
+    }
     showDialog(
       barrierColor: Colors.black.withOpacity(0.5),
       context: context,

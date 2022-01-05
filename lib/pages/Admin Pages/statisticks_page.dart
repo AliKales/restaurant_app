@@ -595,8 +595,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
           for (var anan = 0; anan < orders.length; anan++) {
             for (var item in orders[anan]) {
               Order order = Order.fromJson(item);
-              List<Food> listFood = List<Food>.generate(order.foods!.length,
-                  (index) => Food.fromJson(order.foods![index]));
+              List<Food> listFood = List<Food>.generate(order.foods.length,
+                  (index) => Food.fromJson(order.foods[index]));
               for (var food in listFood) {
                 int index = allFoods
                     .indexWhere((element) => element['name'] == food.name);
@@ -653,7 +653,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
     for (var item in orders[index]) {
       Order order = Order.fromJson(item);
       List<Food> listFood = List<Food>.generate(
-          order.foods!.length, (index) => Food.fromJson(order.foods![index]));
+          order.foods.length, (index) => Food.fromJson(order.foods[index]));
       for (var food in listFood) {
         int index =
             chartDatas.indexWhere((element) => element['name'] == food.name);
@@ -691,7 +691,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
       for (var item in orders[i]) {
         Order order = Order.fromJson(item);
         List<Food> listFood = List<Food>.generate(
-            order.foods!.length, (a) => Food.fromJson(order.foods![a]));
+            order.foods.length, (a) => Food.fromJson(order.foods[a]));
         for (var food in listFood) {
           if (food.name == allFoods[whichfood]['name']) {
             int index =

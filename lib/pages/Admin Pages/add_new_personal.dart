@@ -11,6 +11,7 @@ import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/firebase/Storage.dart';
 import 'package:restaurant_app/funcs.dart';
+import 'package:restaurant_app/lists.dart';
 import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/size.dart';
 
@@ -32,7 +33,7 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
   TextEditingController tECPassword = TextEditingController();
   TextEditingController tECRole = TextEditingController();
 
-  List roles = ["Select a role", "Staff", "Chef", "Cashier"];
+  List roles = Lists().roles;
   int selectedRole = 0;
 
   File? photo;
@@ -171,54 +172,24 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
                                   Radius.circular(6),
                                 ),
                               ),
-                              child: Image.file(
-                                photo!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Center(
-                                  child: Text(
-                                    "ERROR",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headline6!
-                                        .copyWith(color: Colors.red),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Image.file(
+                                  photo!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Center(
+                                    child: Text(
+                                      "ERROR",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headline6!
+                                          .copyWith(color: Colors.red),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                            // Stack(
-                            //   alignment: Alignment.center,
-                            //   children: [
-                            //     Container(
-                            //       height:
-                            //           MediaQuery.of(context).size.width / 1.96,
-                            //       width:
-                            //           MediaQuery.of(context).size.width / 1.96,
-                            //       decoration: const BoxDecoration(
-                            //         gradient: LinearGradient(
-                            //             colors: [color2, color3],
-                            //             begin: Alignment.centerLeft,
-                            //             end: Alignment.centerRight),
-                            //         borderRadius: BorderRadius.all(
-                            //           Radius.circular(6),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //     Container(
-                            //       height: MediaQuery.of(context).size.width / 2,
-                            //       width: MediaQuery.of(context).size.width / 2,
-                            //       decoration: BoxDecoration(
-                            //         image: DecorationImage(
-                            //           image: FileImage(photo!),
-                            //           fit: BoxFit.fill,
-                            //         ),
-                            //         borderRadius: const BorderRadius.all(
-                            //           Radius.circular(6),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
                             const SizedBox(
                               height: 12,
                             )
@@ -290,16 +261,32 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
     if (error != "") {
       setState(() {
         progress1 = false;
+        progress2 = false;
       });
       return;
     }
 
     // current global time is gotten and maden an uniqe id. With this new added personnel will be shown at top of the database
-    DateTime currentGlobalTime = await Funcs().getCurrentGlobalTime(context);
-    DateTime day = DateTime(3000, 04, 04, 23, 59, 59);
-    String id = day.difference(currentGlobalTime).toString();
-    id = id.replaceAll(":", "");
-    id = id.replaceAll(".", "");
+    String? id = await Funcs.createId(context: context);
+
+    if (id == null) {
+      setState(() {
+        progress1 = false;
+        progress2 = false;
+      });
+      return;
+    }
+
+    bool isUsernameExist = await Firestore.checkUsername(
+        context: context, username: tECUsername.text);
+
+    if (isUsernameExist == false) {
+      setState(() {
+        progress1 = false;
+        progress2 = false;
+      });
+      return;
+    }
 
     if (photo != null) {
       await Storage.addPersonnelPhoto(
@@ -313,23 +300,18 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
           },
           onFinish: (downloadURL) async {
             if (downloadURL == "") {
+              setState(() {
+                progress1 = false;
+                // progress2 makes the photo visible and show uploading progress
+                progress2 = false;
+              });
               Funcs().showSnackBar(context, "Error! Please try again");
             } else {
               await addPersonnelToDatabase2(downloadURL, id);
             }
-            setState(() {
-              progress1 = false;
-              // progress2 makes the photo visible and show uploading progress
-              progress2 = false;
-            });
           });
     } else {
       await addPersonnelToDatabase2("", id);
-      setState(() {
-        progress1 = false;
-        // progress2 makes the photo visible and show uploading progress
-        progress2 = false;
-      });
     }
   }
 
@@ -338,7 +320,7 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
         name: tECName.text,
         lastName: tECLastname.text,
         username: tECUsername.text,
-        phone: tECPassword.text,
+        phone: tECPhone.text,
         photoURL: downloadURL,
         createdDate: DateTime.now().toIso8601String(),
         role: tECRole.text,
@@ -350,6 +332,11 @@ class _AddNewPersonalState extends State<AddNewPersonal> {
       if (value) {
         Funcs().showSnackBar(context, "Personnel has been successfully added.");
         Navigator.pop(context, personnel);
+      } else {
+        setState(() {
+          progress1 = false;
+          progress2 = false;
+        });
       }
     });
   }

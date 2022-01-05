@@ -13,11 +13,12 @@ import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/admin_page.dart';
 import 'package:restaurant_app/pages/Cashier%20Pages/cashier_page.dart';
 import 'package:restaurant_app/pages/Chef%20Pages/chef_page.dart';
+import 'package:restaurant_app/pages/Waiter%20Pages/waiter_page.dart';
 import 'package:restaurant_app/pages/select_restaurant_page.dart';
-import 'package:restaurant_app/pages/Staff%20Pages/staff_page.dart';
 import 'package:restaurant_app/size.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
 
 class PersonelManagerPage extends StatefulWidget {
   const PersonelManagerPage({Key? key}) : super(key: key);
@@ -38,6 +39,9 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   bool progress2 = false;
 
   bool permission1 = false;
+
+  ///* [permission2] is for version check
+  bool? permission2;
 
   var box = Hive.box('database');
 
@@ -107,7 +111,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                                   size: 30,
                                 ),
                                 alignLabelWithHint: true,
-                                hintText: "Password to sign out",
+                                hintText: "Admin password to sign out",
                                 hintStyle: TextStyle(color: Colors.white60),
                                 isDense: true,
                                 contentPadding: EdgeInsets.all(15),
@@ -163,9 +167,9 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
 
   List persons = [
     {
-      "text": "Staff",
+      "text": "Waiter",
       "icon": Icons.person,
-      "page": const StaffPage(),
+      "page": const WaiterPage(),
     },
     {
       "text": "Chef",
@@ -187,6 +191,36 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   ];
 
   Widget body() {
+    if (permission2 != null && !permission2!) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "PLEASE UPDATE THE APP ON GOOGLE PLAY STORE!!!",
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .headline5!
+                .copyWith(color: color4, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(
+            height: SizeConfig().setHight(3),
+          ),
+          CustomGradientButton(
+            context: context,
+            text: "Update",
+            func: () async {
+              if (!await launch(
+                  "https://play.google.com/store/apps/details?id=com.caroby.q_biks")) {
+                Funcs().showSnackBar(context,
+                    "Error! Please update manually on Google Play Store");
+              }
+            },
+          )
+        ],
+      );
+    }
     if (progress2) {
       return Center(
         child: CustomGradientButton(
@@ -199,19 +233,20 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
       );
     }
     if (restaurant == null) {
-      return Center(
-        child: Column(
-          children: [
-            Text(
-              "RESTAURANT INFOS ARE GETTING..",
-              style: Theme.of(context)
-                  .textTheme
-                  .headline5!
-                  .copyWith(color: color4, fontWeight: FontWeight.bold),
-            ),
-            SimpleUIs().progressIndicator(),
-          ],
-        ),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "RESTAURANT INFOS ARE GETTING..",
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .headline5!
+                .copyWith(color: color4, fontWeight: FontWeight.bold),
+          ),
+          SimpleUIs().progressIndicator(),
+        ],
       );
     } else if (FirebaseAuth.instance.currentUser!.emailVerified) {
       return Center(
@@ -233,7 +268,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                     mainAxisSpacing: SizeConfig().setHight(5),
                     crossAxisSpacing: SizeConfig().setWidth(5)),
                 itemBuilder: (context, index) {
-                  return kIsWeb && persons[index]['text'] == "Admin"
+                  return kIsWeb && (persons[index]['text'] == "Admin" ||
+                          persons[index]['text'] == "Waiter")
                       ? const SizedBox.shrink()
                       : widgetContainerForPerson(persons[index]);
                 },
@@ -347,6 +383,25 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
 
   //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
   Future getRestaurantInfos() async {
+    if (!kIsWeb) {
+      bool? response = await Firestore().checkVersion(context);
+      if (response == null) {
+        setState(() {
+          progress2 = true;
+        });
+        return;
+      } else if (response == false) {
+        setState(() {
+          permission2 = false;
+        });
+        return;
+      } else {
+        permission2 = true;
+      }
+    } else {
+      permission2 = true;
+    }
+
     Map map = box.get('infoRestaurant') ?? {};
     if (map.isNotEmpty &&
         DateTime.parse(map['dateTime']).day == DateTime.now().day) {
@@ -360,7 +415,10 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
       if (restaurant == null) {
         progress2 = true;
       }
-      if (restaurant != null && restaurant!.password != "ozel-admin-code:31") {
+      if (kIsWeb) {
+        permission1 = true;
+      } else if (restaurant != null &&
+          restaurant!.password != "ozel-admin-code:31") {
         await Funcs()
             .getCurrentGlobalTimeForRestaurantCreating(context)
             .then((value) {

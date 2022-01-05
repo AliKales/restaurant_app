@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/models/food.dart';
 import 'package:restaurant_app/models/order.dart';
+import 'package:restaurant_app/models/order_status.dart';
 import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/select_restaurant_page.dart';
@@ -19,6 +20,7 @@ Future<void> main() async {
   Hive.registerAdapter(PersonnelAdapter());
   Hive.registerAdapter(FoodAdapter());
   Hive.registerAdapter(OrderAdapter());
+  Hive.registerAdapter(OrderStatusAdapter());
   await Hive.openBox('database');
   runApp(const MyApp());
 }

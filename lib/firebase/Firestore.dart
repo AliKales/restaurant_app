@@ -8,6 +8,8 @@ import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 
 class Firestore {
+  final int version = 1;
+
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   DocumentReference collectionToPersonnels = FirebaseFirestore.instance
@@ -36,9 +38,33 @@ class Firestore {
     }
   }
 
-  Future<Restaurant?> checkAdminPassword(context,email,password) async {
+  Future<bool?> checkVersion(context) async {
     try {
-      var value = await FirebaseFirestore.instance.collection('restaurants')
+      DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection("update")
+          .doc("update")
+          .get();
+      if(!documentSnapshot.exists){
+        return null;
+      }
+      Map update = documentSnapshot.data() as Map;
+      int versionDB = update['version'];
+      if (versionDB > version) {
+        return false;
+      } else {
+        return true;
+      }
+    } on FirebaseException catch (e) {
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Restaurant?> checkAdminPassword(context, email, password) async {
+    try {
+      var value = await FirebaseFirestore.instance
+          .collection('restaurants')
           .where('email', isEqualTo: email)
           .where('password', isNotEqualTo: password)
           .limit(1)
@@ -107,13 +133,6 @@ class Firestore {
         .doc(Auth().getEMail())
         .collection("personnels");
     try {
-      var usernameCheck = await collectionToPersonnels
-          .where("username", isEqualTo: personnel.username)
-          .get();
-      if (usernameCheck.docs.isNotEmpty) {
-        Funcs().showSnackBar(context, "This 'username' is already taken!!!");
-        return false;
-      }
       var box = Hive.box('database');
       await collectionToPersonnels.doc(personnel.id).set(personnel.toMap());
       List personnels = box.get("personnels") ?? [];
@@ -121,8 +140,36 @@ class Firestore {
       box.put("personnels", personnels);
       return true;
     } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR!!!");
       return false;
     } catch (e) {
+      Funcs().showSnackBar(context, "ERROR!!!");
+      return false;
+    }
+  }
+
+  static Future<bool> checkUsername({
+    required context,
+    required String username,
+  }) async {
+    CollectionReference collectionToPersonnels = FirebaseFirestore.instance
+        .collection("restaurants")
+        .doc(Auth().getEMail())
+        .collection("personnels");
+    try {
+      var usernameCheck = await collectionToPersonnels
+          .where("username", isEqualTo: username)
+          .get();
+      if (usernameCheck.docs.isNotEmpty) {
+        Funcs().showSnackBar(context, "This 'username' is already taken!!!");
+        return false;
+      }
+      return true;
+    } on FirebaseException {
+      Funcs().showSnackBar(context, "ERROR!!!");
+      return false;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR!!!");
       return false;
     }
   }
@@ -223,6 +270,12 @@ class Firestore {
       required final Personnel personnel,
       required final String where,
       required final Map<String, Object> mapForUpdate}) async {
+    if (where == "username") {
+      bool checkUsername = await Firestore.checkUsername(
+          context: context, username: mapForUpdate['username'].toString());
+      if (!checkUsername) return false;
+    }
+
     try {
       await FirebaseFirestore.instance
           .collection("restaurants")
@@ -232,7 +285,7 @@ class Firestore {
           .update(mapForUpdate);
       Funcs().showSnackBar(context, "${where.toUpperCase()}'s been changed");
       return true;
-    } on FirebaseException {
+    } on FirebaseException catch (e) {
       Funcs().showSnackBar(context, "ERROR!");
       return false;
     } catch (e) {
@@ -337,105 +390,6 @@ class Firestore {
     }
   }
 
-  static Future<bool> setOrder({
-    required context,
-    required Order order,
-  }) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection("restaurants")
-          .doc(Auth().getEMail())
-          .collection("orders")
-          .doc(order.databaseReference)
-          .set(order.toMap());
-      Funcs().showSnackBar(context, "Order has been sent");
-      return true;
-    } on FirebaseException catch (e) {
-      print(e);
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return false;
-    } catch (e) {
-      print(e);
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return false;
-    }
-  }
-
-  static Future<bool> updateOrder({
-    required context,
-    required String databaseReference,
-    required String id,
-  }) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection("restaurants")
-          .doc(Auth().getEMail())
-          .collection("orders")
-          .doc(databaseReference)
-          .update({'id': id.trim(), 'idSearch': id.trim().replaceAll(" ", "")});
-      return true;
-    } on FirebaseException {
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return false;
-    } catch (e) {
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return false;
-    }
-  }
-
-  static Future<bool> deleteOrder(
-      {required context,
-      required String databaseReference,
-      bool showMessage = false}) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection("restaurants")
-          .doc(Auth().getEMail())
-          .collection("orders")
-          .doc(databaseReference)
-          .delete();
-      if (showMessage) {
-        Funcs().showSnackBar(context, "Deleted");
-      }
-      return true;
-    } on FirebaseException {
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return false;
-    } catch (e) {
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return false;
-    }
-  }
-
-  static Future<Order?> getOrder({
-    required context,
-    required String idSearch,
-  }) async {
-    try {
-      var value = await FirebaseFirestore.instance
-          .collection("restaurants")
-          .doc(Auth().getEMail())
-          .collection("orders")
-          .where('idSearch', isGreaterThanOrEqualTo: idSearch)
-          .where('idSearch', isLessThanOrEqualTo: idSearch + "\uF7FF")
-          .limit(1)
-          .get();
-      if (value.docs.isNotEmpty) {
-        Funcs().showSnackBar(context, "Searched");
-        return Order.fromJson(value.docs[0].data());
-      } else {
-        Funcs().showSnackBar(context, "No Order With This ID!!!");
-        return null;
-      }
-    } on FirebaseException {
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return null;
-    } catch (e) {
-      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
-      return null;
-    }
-  }
-
   static Future<bool> payOrder({
     required context,
     required Order order,
@@ -449,7 +403,35 @@ class Firestore {
           .update({
         DateTime.now().month.toString(): FieldValue.arrayUnion([order.toMap()]),
       });
-      Funcs().showSnackBar(context, "PAYED");
+      Funcs().showSnackBar(context, "PAID 2");
+      return true;
+    } on FirebaseException catch (e) {
+      if (e.code == "not-found") {
+        bool comeBack = await createPaymentInfo(context: context, order: order);
+        return comeBack;
+      }
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
+      return false;
+    }
+  }
+
+  static Future<bool> createPaymentInfo({
+    required context,
+    required Order order,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .collection("payments")
+          .doc(DateTime.now().year.toString())
+          .set({
+        DateTime.now().month.toString(): [order.toMap()],
+      });
+      Funcs().showSnackBar(context, "PAID 2");
       return true;
     } on FirebaseException catch (e) {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
@@ -483,7 +465,7 @@ class Firestore {
         Funcs().showSnackBar(context, "No Data!");
         return null;
       }
-    } on FirebaseException catch(e){
+    } on FirebaseException catch (e) {
       Funcs().showSnackBar(context, "ERROR! TRY AGAIN");
       return null;
     } catch (e) {

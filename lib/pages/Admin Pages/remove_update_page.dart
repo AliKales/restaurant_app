@@ -7,6 +7,7 @@ import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
+import 'package:restaurant_app/lists.dart';
 import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/size.dart';
 
@@ -238,12 +239,51 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
             ],
           ),
           //role Text
-          Text(
-            widget.personnel.role,
-            style: Theme.of(context)
-                .textTheme
-                .headline4!
-                .copyWith(color: color4, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(
+                Icons.edit,
+                color: Colors.transparent,
+              ),
+              Text(
+                widget.personnel.role,
+                style: Theme.of(context)
+                    .textTheme
+                    .headline4!
+                    .copyWith(color: color4, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                onPressed: () async {
+                  List list = Lists().roles;
+                  int role = list.indexWhere(
+                      (element) => element == widget.personnel.role);
+                  setState(() {
+                    progress1 = true;
+                  });
+                  await SimpleUIs()
+                      .showGeneralDialogFunc(context, list, role)
+                      .then((value) {
+                    if (value != 0 && value != role) {
+                      updateField="role";
+                      tEC.text = list[value];
+                    } else {
+                      setState(() {
+                        progress1 = false;
+                      });
+                    }
+                  });
+                },
+                padding: const EdgeInsets.all(0),
+                constraints: const BoxConstraints(),
+                highlightColor: Colors.transparent,
+                splashColor: Colors.transparent,
+                icon: const Icon(
+                  Icons.edit,
+                  color: color4,
+                ),
+              ),
+            ],
           ),
           SizedBox(
             height: SizeConfig().setHight(3),
@@ -359,7 +399,7 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
     return Row(
       children: [
         Expanded(
-          child: Container(
+          child: SizedBox(
             child: Align(
               alignment: Alignment.centerLeft,
               child: FittedBox(
@@ -479,10 +519,17 @@ class RemoveUpdatePageState extends State<RemoveUpdatePage> {
         context: context,
         personnel: widget.personnel,
         mapForUpdate: {updateField: text}).then((value) {
-      Map map = widget.personnel.toMap();
-      map[updateField] = text;
-      Navigator.pop(
-          context, {'what': 'update', 'personnel': Personnel.fromJson(map)});
+      FocusScope.of(context).unfocus();
+      if (value) {
+        Map map = widget.personnel.toMap();
+        map[updateField] = text;
+        Navigator.pop(
+            context, {'what': 'update', 'personnel': Personnel.fromJson(map)});
+      } else {
+        setState(() {
+          progress4 = false;
+        });
+      }
     });
   }
 }

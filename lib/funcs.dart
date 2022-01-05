@@ -51,40 +51,18 @@ class Funcs {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
 
-  Future<DateTime> getCurrentGlobalTime(context) async {
-    DateTime now;
-    try {
-      Response response = await get(
-        Uri.parse(kIsWeb
-            ? "https://cors-anywhere.herokuapp.com/http://worldtimeapi.org/api/timezone/Europe/Istanbul"
-            : "http://worldtimeapi.org/api/timezone/Europe/Istanbul"),
-      );
-      Map worldData = jsonDecode(response.body);
-      now = DateTime(
-        int.parse(worldData['datetime'].substring(0, 4)),
-        int.parse(worldData['datetime'].substring(5, 7)),
-        int.parse(worldData['datetime'].substring(8, 10)),
-        int.parse(worldData['datetime'].substring(11, 13)),
-        int.parse(worldData['datetime'].substring(14, 16)),
-        int.parse(worldData['datetime'].substring(17, 19)),
-      );
-    } catch (e) {
-      now = DateTime.now();
-      Funcs().showSnackBar(context,
-          "Unexpected error, please try again later or check app update!");
-    }
-
-    return now;
-  }
-
-  Future<DateTime?> getCurrentGlobalTimeForRestaurantCreating(context) async {
+  Future<DateTime?> getCurrentGlobalTime(context) async {
     DateTime? now;
     try {
       Response response = await get(
-        Uri.parse(kIsWeb
-            ? "https://cors-anywhere.herokuapp.com/http://worldtimeapi.org/api/timezone/Europe/Istanbul"
-            : "http://worldtimeapi.org/api/timezone/Europe/Istanbul"),
-      );
+          Uri.parse(
+            "http://worldtimeapi.org/api/timezone/Europe/Istanbul",
+          ),
+          headers: {
+            "Access-Control-Allow-Origin": " *",
+            "Access-Control-Allow-Headers":
+                "Access-Control-Allow-Origin, Accept"
+          });
       Map worldData = jsonDecode(response.body);
       now = DateTime(
         int.parse(worldData['datetime'].substring(0, 4)),
@@ -96,8 +74,39 @@ class Funcs {
       );
     } catch (e) {
       now = null;
-      Funcs().showSnackBar(context,
-          "Unexpected error, please try again later or check app update!");
+      Funcs().showSnackBar(context, "ERROR!!");
+    }
+
+    return now;
+  }
+
+  Future<DateTime?> getCurrentGlobalTimeForRestaurantCreating(context) async {
+    Map<String, String> requestHeaders = {
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+    };
+    DateTime? now;
+    try {
+      Response response = await get(
+          Uri.parse(
+            //"https://www.timeapi.io/api/Time/current/coordinate?latitude=41.015137&longitude=28.979530"
+            "http://worldtimeapi.org/api/timezone/Europe/Istanbul",
+          ),
+          headers: requestHeaders);
+      Map worldData = jsonDecode(response.body);
+      now = DateTime(
+        int.parse(worldData['datetime'].substring(0, 4)),
+        int.parse(worldData['datetime'].substring(5, 7)),
+        int.parse(worldData['datetime'].substring(8, 10)),
+        int.parse(worldData['datetime'].substring(11, 13)),
+        int.parse(worldData['datetime'].substring(14, 16)),
+        int.parse(worldData['datetime'].substring(17, 19)),
+      );
+    } catch (e) {
+      now = null;
+      Funcs().showSnackBar(context, e.toString());
+      // Funcs().showSnackBar(context,
+      //     "Unexpected error, please try again later or check app update!");
     }
 
     return now;
@@ -175,5 +184,30 @@ class Funcs {
                 .textTheme
                 .subtitle1!
                 .copyWith(color: color4, fontWeight: FontWeight.bold)));
+  }
+
+  static Future<String?> createId({
+    required final context,
+    final String? personnelUsername,
+  }) async {
+    DateTime? currentGlobalTime;
+    if (personnelUsername == null) {
+      currentGlobalTime = await Funcs().getCurrentGlobalTime(context);
+      if(currentGlobalTime==null){        
+        return null;
+      }
+    } else {
+      currentGlobalTime = DateTime.now();
+    }
+
+    DateTime day = DateTime(3000, 04, 04, 23, 59, 59);
+    String id = day.difference(currentGlobalTime).toString();
+    id = id.replaceAll(":", "");
+    id = id.replaceAll(".", "");
+    id = id.substring(0, id.length - 6);
+    if(personnelUsername!=null){
+      id="$personnelUsername$id";
+    }
+    return id;
   }
 }

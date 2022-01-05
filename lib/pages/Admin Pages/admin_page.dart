@@ -404,6 +404,7 @@ class _AdminPageState extends State<AdminPage> {
           pay2(value);
         } else {
           setState(() {
+            progress2=false;
             progress3 = false;
           });
         }

@@ -121,7 +121,7 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
                 SizedBox(
                   height: SizeConfig().setHight(3),
                 ),
-                category.isEmpty
+                categories.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.all(10),
                         child: Text(
@@ -380,6 +380,7 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
       Funcs().showSnackBar(context, "Added!");
 
       tECName.clear();
+      setState(() {});
     }
   }
 

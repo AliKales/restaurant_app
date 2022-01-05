@@ -13,10 +13,12 @@ class CustomGradientButton extends StatelessWidget {
     this.color,
     this.radius = 6,
     this.icon,
+    this.longPress,
   }) : super(key: key);
 
   final BuildContext context;
   final Function()? func;
+  final Function()? longPress;
   final String? text;
   final bool? loading;
   final bool? isOutlined;
@@ -32,6 +34,7 @@ class CustomGradientButton extends StatelessWidget {
       if (isOutlined == null || isOutlined == false) {
         return InkWell(
           onTap: func ?? () {},
+          onLongPress: longPress??(){},
           child: Container(
             padding: icon == null
                 ? const EdgeInsets.symmetric(horizontal: 20, vertical: 12)

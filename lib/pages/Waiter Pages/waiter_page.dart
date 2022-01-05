@@ -15,21 +15,22 @@ import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/lists.dart';
 import 'package:restaurant_app/models/food.dart';
 import 'package:restaurant_app/models/order.dart';
+import 'package:restaurant_app/models/order_status.dart';
 import 'package:restaurant_app/models/personnel.dart';
-import 'package:restaurant_app/pages/Staff%20Pages/add_food_page.dart';
-import 'package:restaurant_app/pages/Staff%20Pages/previous_orders_page.dart';
 import 'package:restaurant_app/pages/personal_manager_page.dart';
 import 'package:restaurant_app/size.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'previous_orders_page.dart';
+import 'add_food_page.dart';
 
-class StaffPage extends StatefulWidget {
-  const StaffPage({Key? key}) : super(key: key);
+class WaiterPage extends StatefulWidget {
+  const WaiterPage({Key? key}) : super(key: key);
 
   @override
-  _StaffPageState createState() => _StaffPageState();
+  _WaiterPageState createState() => _WaiterPageState();
 }
 
-class _StaffPageState extends State<StaffPage> {
+class _WaiterPageState extends State<WaiterPage> {
   final formatCurrency = NumberFormat.simpleCurrency();
   Personnel? personnel;
 
@@ -293,7 +294,7 @@ class _StaffPageState extends State<StaffPage> {
                 },
                 funcOrder: () {
                   FocusScope.of(context).unfocus();
-                  funcOrder();
+                  funcOrder(false);
                 },
                 funcDelete: () {
                   FocusScope.of(context).unfocus();
@@ -330,7 +331,7 @@ class _StaffPageState extends State<StaffPage> {
     clear();
   }
 
-  Future funcOrder() async {
+  Future funcOrder(bool sendAnyway) async {
     if (tECID.text.trim().isEmpty || foods.isEmpty) {
       Funcs().showSnackBar(context, "ID/Name and Foods can not be empty!");
       return;
@@ -339,33 +340,62 @@ class _StaffPageState extends State<StaffPage> {
     for (var item in foods) {
       list.add(item.toMap());
     }
-    order ??= Order(
+    String? databaseReference = await Funcs.createId(
+        context: context, personnelUsername: personnel!.username);
+    order = Order(
         note: tECNote.text.trim(),
         orderBy: tECUsername.text,
         date: DateTime.now().toIso8601String(),
         id: tECID.text.trim(),
         foods: list,
         price: getTotalAmount(),
-        databaseReference: "",
-        idSearch: tECID.text.trim().replaceAll(" ", ""));
+        databaseReference: databaseReference,
+        idSearch: tECID.text.trim().replaceAll(" ", ""),
+        status: OrderStatus.waiting);
 
     SimpleUIs().showProgressIndicator(context);
-    String value = await Database().sendOrder(context, order!.toMap());
-    if (value != "") {
-      order!.databaseReference = value;
-    } else {
+    String value = await Database().sendOrder(context, order!, sendAnyway);
+    if (value == "admin-code-31") {
       Navigator.pop(context);
+      SimpleUIs.showCustomDialog(
+          context: context,
+          title: "ID ALREADY EXISTS",
+          content: const Text(
+            "This ID already exists but if this is another ORDER for this ID, please PRESS LONG on 'YES'",
+            style: TextStyle(color: color4),
+          ),
+          actions: [
+            CustomGradientButton(
+              context: context,
+              color: color1,
+              isOutlined: true,
+              text: "CANCEL",
+              func: () {
+                Navigator.pop(context);
+              },
+            ),
+            CustomGradientButton(
+              context: context,
+              text: "YES",
+              func: (){
+                Funcs().showSnackBar(context, "LONG PRESS!!!!");
+              },
+              longPress: () {
+                Navigator.pop(context);
+                funcOrder(true);
+              },
+            )
+          ]);
       return;
-    }
-    bool boolean = await Firestore.setOrder(context: context, order: order!);
-    if (!boolean) {
-      Navigator.pop(context);
-      return;
-    } else {
+    } else if (value != "") {
       orders.insert(0, order);
       box.put("orders", orders);
       clear();
+    } else {
+      Navigator.pop(context);
+      return;
     }
+
     Navigator.pop(context);
   }
 

@@ -99,6 +99,20 @@ class Database {
       required Map<String, dynamic> update,
       bool isID = false}) async {
     try {
+      DataSnapshot dataSnapshot = await FirebaseDatabase(
+              databaseURL:
+                  "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+          .reference()
+          .child("orders")
+          .child(Auth().getUID())
+          .child(databaseReference)
+          .once();
+
+      if (!dataSnapshot.exists) {
+        Funcs().showSnackBar(context,
+            "ERROR! This update has no match! This data might be deleted!");
+        return "admin-code-52";
+      }
       if (isID) {
         DataSnapshot dataSnapshot = await FirebaseDatabase(
                 databaseURL:
@@ -135,6 +149,31 @@ class Database {
     }
   }
 
+  static Future<Order?> getOrder(
+      {required final context, required final String databaseReference,}) async {
+    try {
+      DataSnapshot dataSnapshot = await FirebaseDatabase(
+              databaseURL:
+                  "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+          .reference()
+          .child("orders")
+          .child(Auth().getUID())
+          .child(databaseReference)
+          .get();
+      if (!dataSnapshot.exists) {
+        Funcs().showSnackBar(context, "This order doesn't exist!");
+        return null;
+      }
+      return Order.fromJson(dataSnapshot.value);
+    } on FirebaseException catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    } catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    }
+  }
+
   static Future<List<Order>?> getOrders({
     required final context,
     required final String idSearch,
@@ -148,7 +187,6 @@ class Database {
         .reference()
         .child("orders")
         .child(Auth().getUID());
-
 
     try {
       dataSnapshot = await databaseReference

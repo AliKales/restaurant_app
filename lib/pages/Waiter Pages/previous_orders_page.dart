@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive/hive.dart';
@@ -8,14 +10,19 @@ import 'package:restaurant_app/UIs/appbar_persons.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/custom_textfield.dart';
 import 'package:restaurant_app/UIs/order_ticket.dart';
+import 'package:restaurant_app/UIs/widget_order_ticket.dart';
 import 'package:restaurant_app/colors.dart';
+import 'package:restaurant_app/firebase/Auth.dart';
 import 'package:restaurant_app/firebase/Database.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/food.dart';
 import 'package:restaurant_app/models/order.dart';
+import 'package:restaurant_app/models/order_status.dart';
+import 'package:restaurant_app/size.dart';
 
 import '../../UIs/simple_uis.dart';
+import 'add_food_page.dart';
 
 class PreviousOrdersPage extends StatefulWidget {
   const PreviousOrdersPage({Key? key, required this.orders}) : super(key: key);
@@ -32,9 +39,15 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
   List<Order> orders = [];
   List<List> foods = [];
   List<Order> ordersBySearch = [];
+  List<Order>? ordersToUpdateID;
 
-  int selectedOrder = 0;
+  Order? selectedOrder;
+  Order? databaseOrder;
+
   bool progress1 = false;
+
+  ///* [isUpdating] active the changing
+  bool isUpdating = false;
 
   var box = Hive.box('database');
 
@@ -75,62 +88,187 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
           isPushed: true,
           text: "Previous Oders",
           actions: [
-            IconButton(
-              onPressed: () {
-                tECSearchID.clear();
-                SimpleUIs.showCustomDialog(
-                    context: context,
-                    activeCancelButton: true,
-                    title: "SEARCH ID",
-                    content: CustomTextField(
-                      textEditingController: tECSearchID,
+            (selectedOrder != null && ordersToUpdateID != null)
+                ? const SizedBox.shrink()
+                : IconButton(
+                    onPressed: () {
+                      tECSearchID.clear();
+                      if (ordersBySearch.isNotEmpty) {
+                        setState(() {
+                          ordersBySearch = [];
+                        });
+                        return;
+                      }
+                      SimpleUIs.showCustomDialog(
+                          context: context,
+                          activeCancelButton: true,
+                          title: "SEARCH ID",
+                          content: CustomTextField(
+                            textEditingController: tECSearchID,
+                          ),
+                          actions: [
+                            CustomGradientButton(
+                              context: context,
+                              text: "SEARCH",
+                              func: () {
+                                Navigator.pop(context);
+                                //searchById(tECSearchID.text);
+                              },
+                            ),
+                          ]);
+                    },
+                    padding: const EdgeInsets.all(0),
+                    constraints: const BoxConstraints(),
+                    highlightColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    icon: Icon(
+                      ordersBySearch.isNotEmpty
+                          ? Icons.cancel_outlined
+                          : Icons.search,
+                      color: Colors.white,
                     ),
-                    actions: [
-                      CustomGradientButton(
-                        context: context,
-                        text: "SEARCH",
-                        func: () {
-                          Navigator.pop(context);
-                          searchById(tECSearchID.text);
-                        },
-                      ),
-                    ]);
-              },
-              padding: const EdgeInsets.all(0),
-              constraints: const BoxConstraints(),
-              highlightColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              icon: const Icon(
-                Icons.search,
-                color: Colors.white,
-              ),
-            ),
+                  ),
           ],
         ),
         body: Stack(
           children: [
             body(),
-            progress1
-                ? BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height,
-                      child: ChildOrderTicket(
-                        tECID: tECID,
-                        price: orders[selectedOrder].price,
-                        foods: List<Food>.generate(
-                            orders[selectedOrder].foods.length,
-                            (index) => Food.fromJson(
-                                orders[selectedOrder].foods[index])),
-                        inkWellOnTap: (i) {                          
-                        },
-                        buttonText: "UPDATE",
-                        add: () async {
-                          if (orders[selectedOrder].id != tECID.text) {
-                            update(true);
-                          }
-                        },
+            selectedOrder != null
+                ? Container(
+                    color: color1,
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CustomTextField(
+                                  textEditingController: tECID,
+                                  isFilled: true,
+                                  filledColor: Colors.grey[350],
+                                  text: "Id or Name:",
+                                  colorHint: Colors.black,
+                                  textStyle: Theme.of(context)
+                                      .textTheme
+                                      .subtitle1!
+                                      .copyWith(color: Colors.black),
+                                ),
+                              ),
+                            ),
+                            CustomGradientButton(
+                              context: context,
+                              text: "Update",
+                              func: () {
+                                updateID(
+                                    true, selectedOrder!.databaseReference!);
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: SizeConfig().setHight(2),
+                        ),
+                        CustomGradientButton(
+                          context: context,
+                          text: isUpdating ? "Stop Update" : "Start Update",
+                          func: () {
+                            if (isUpdating) {
+                              stopUpdateFun();
+                            } else {
+                              updateFun();
+                            }
+                          },
+                        ),
+                        OrderTicket(
+                          tECID: tECID,
+                          isTextFieldActive: false,
+                          absoring: !isUpdating,
+                          price: selectedOrder?.price ?? 0,
+                          foods: getList(),
+                          inkWellOnTap: (value) {},
+                          add: () {
+                            FocusScope.of(context).unfocus();
+                            addFood();
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            (ordersToUpdateID != null && ordersToUpdateID!.length > 1)
+                ? Container(
+                    color: color1,
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  ordersToUpdateID=null;
+                                });
+                              },
+                              icon: const Icon(
+                                Icons.close,
+                                color: color4,
+                              ),
+                            ),
+                          ),
+                          CustomGradientButton(
+                            context: context,
+                            text: "Update All",
+                            func: () {
+                              updateAll();
+                            },
+                          ),
+                          Text(
+                            "to ${tECID.text}",
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline6!
+                                .copyWith(
+                                    color: color4, fontWeight: FontWeight.bold),
+                          ),
+                          ListView.builder(
+                            itemCount: ordersToUpdateID!.length,
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              return Column(
+                                children: [
+                                  WidgetOrderTicket(
+                                    order: ordersToUpdateID![index],
+                                    isChef: false,
+                                  ),
+                                  ordersToUpdateID![index].id ==
+                                          tECID.text.trim()
+                                      ? const SizedBox.shrink()
+                                      : const Icon(
+                                          Icons.arrow_upward,
+                                          color: color4,
+                                        ),
+                                  ordersToUpdateID![index].id ==
+                                          tECID.text.trim()
+                                      ? const SizedBox.shrink()
+                                      : CustomGradientButton(
+                                          context: context,
+                                          text: "Update",
+                                          isOutlined: true,
+                                          color: color1,
+                                          func: () {
+                                            updateOneFromMultiple(index);
+                                          },
+                                        )
+                                ],
+                              );
+                            },
+                          )
+                        ],
                       ),
                     ),
                   )
@@ -156,12 +294,29 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
       itemCount: list.length,
       itemBuilder: (_, index) {
         return InkWell(
-          onLongPress: () {
-            setState(() {
-              selectedOrder = index;
-              progress1 = true;
-              tECID.text = list[selectedOrder].id!;
-            });
+          onLongPress: () async {
+            if (ordersBySearch.isNotEmpty) {
+              setState(() {
+                selectedOrder = list[index];
+                tECID.text = selectedOrder!.id!;
+              });
+            } else {
+              SimpleUIs().showProgressIndicator(context);
+              Order? order = await Database.getOrder(
+                  context: context,
+                  databaseReference: list[index].databaseReference);
+              if (order != null) {
+                setState(() {
+                  selectedOrder = order;
+                  tECID.text = order.id!;
+                });
+                orders[orders.indexWhere((element) =>
+                        element.databaseReference == order.databaseReference)] =
+                    order;
+                box.put("orders", orders);
+              }
+              Navigator.pop(context);
+            }
           },
           child: Slidable(
             key: const ValueKey(1),
@@ -198,7 +353,7 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
                           text: "Delete",
                           func: () {
                             Navigator.pop(context);
-                            deleteOrder(index);
+                            //deleteOrder(index);
                           },
                         ),
                       ],
@@ -247,11 +402,161 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
 
   //FUNCTİONs-----------------------------
 
-  Future update(bool isID) async {
+  Future stopUpdateFun() async {
+    SimpleUIs().showProgressIndicator(context);
+    selectedOrder!.status = OrderStatus.waiting;
+    for (var i = 0; i < selectedOrder!.foods.length; i++) {
+      if (selectedOrder!.foods[i].runtimeType == Food) {
+        selectedOrder!.foods[i] = selectedOrder!.foods[i].toMap();
+      }
+    }
+    String response = await Database.updateOrder(
+        context: context,
+        databaseReference: selectedOrder!.databaseReference!,
+        update: selectedOrder!.toMap());
+    Navigator.pop(context);
+    if (response == "true") {
+      setState(() {
+        isUpdating = false;
+      });
+    }
+  }
+
+  Future updateFun() async {
+    SimpleUIs().showProgressIndicator(context);
+    try {
+      FirebaseDatabase(
+              databaseURL:
+                  "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+          .reference()
+          .child("orders")
+          .child(Auth().getUID())
+          .child(selectedOrder!.databaseReference!)
+          .runTransaction((mutableData) {
+        if (mutableData.value == null) {
+          Navigator.pop(context);
+          Funcs().showSnackBar(context, "ERROR! PLEASE TRY AGAIN");
+          return mutableData;
+        }
+        SimpleUIs().showProgressIndicator(context);
+        if (Order.fromJson(mutableData.value).status == OrderStatus.cooking) {
+          Database.updateOrder(
+                  context: context,
+                  databaseReference: selectedOrder!.databaseReference!,
+                  update: {"status": Order.enumToString(OrderStatus.cooking)})
+              .then((value) {
+            setState(() {
+              isUpdating = false;
+            });
+            Navigator.pop(context);
+            Funcs().showSnackBar(
+                context, "This order is already getting ready!!!");
+          });
+        } else if (Order.fromJson(mutableData.value).status !=
+            OrderStatus.ready) {
+          Database.updateOrder(
+                  context: context,
+                  databaseReference: selectedOrder!.databaseReference!,
+                  update: {"status": Order.enumToString(OrderStatus.updating)})
+              .then((value) {
+            if (value == "true") {
+              setState(() {
+                isUpdating = true;
+              });
+            }
+            Navigator.pop(context);
+          });
+        } else {
+          Navigator.pop(context);
+        }
+
+        return mutableData;
+      });
+    } on FirebaseException {
+      Navigator.pop(context);
+      Funcs().showSnackBar(context, "ERROR!");
+    } catch (e) {
+      Navigator.pop(context);
+      Funcs().showSnackBar(context, "ERROR!");
+    }
+  }
+
+  List<Food> getList() {
+    return List<Food>.generate(
+      selectedOrder!.foods.length,
+      (index) => selectedOrder!.foods[index].runtimeType == Food
+          ? selectedOrder!.foods[index]
+          : Food.fromJson(
+              selectedOrder!.foods[index],
+            ),
+    );
+  }
+
+  Future addFood() async {
+    List<dynamic>? value = await Funcs().navigatorPush(
+      context,
+      AddFoodPage(pickedFoods: getList()),
+    );
+
+    if (value != null) {
+      selectedOrder!.foods += value;
+      double amount = 0;
+      for (var food in getList()) {
+        amount += double.parse(food.price) * food.count;
+      }
+      selectedOrder!.price = amount;
+      setState(() {});
+    }
+
+    // if (value != null) {
+    //   for (var i = 0; i < value.length; i++) {
+    //     value[i]=value[i].toMap();
+    //   }
+    //   print(value);
+    //   if (ordersBySearch.isNotEmpty) {
+    //     ordersBySearch[selectedOrder].foods += value;
+    //   } else {
+    //     orders[selectedOrder].foods += value;
+    //   }
+    //   setState(() {});
+    // }
+  }
+
+  void updateOneFromMultiple(int index) {
+    updateID2(ordersToUpdateID![index], false, false);
+  }
+
+  Future updateAll() async {
+    for (var item in ordersToUpdateID!) {
+      await updateID2(item, false, false);
+    }
+  }
+
+  Future updateID(bool isID, String databaseReference) async {
+    if (selectedOrder!.idSearch == tECID.text.trim().replaceAll(" ", "")) {
+      Funcs().showSnackBar(context, "Id has not been changed!");
+      return;
+    }
+    SimpleUIs().showProgressIndicator(context);
+    ordersToUpdateID = await Database.getOrders(
+        context: context, idSearch: selectedOrder!.idSearch);
+
+    Navigator.pop(context);
+    setState(() {
+      if (ordersToUpdateID == []) {
+        ordersToUpdateID = null;
+      }
+    });
+    if (ordersToUpdateID?.length == 1) {
+      updateID2(ordersToUpdateID![0], isID, true);
+    }
+  }
+
+  Future updateID2(Order valueOrder, bool isID, bool isSingle) async {
     SimpleUIs().showProgressIndicator(context);
     String response = await Database.updateOrder(
         context: context,
-        databaseReference: orders[selectedOrder].databaseReference!,
+        databaseReference: valueOrder.databaseReference!,
         isID: isID,
         update: {
           'id': tECID.text.trim(),
@@ -284,53 +589,74 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
               },
               longPress: () {
                 Navigator.pop(context);
-                update(false);
+                if (selectedOrder!.id != tECID.text) {
+                  updateID(false, selectedOrder!.databaseReference!);
+                }
               },
             )
           ]);
       return;
     } else if (response != "") {
-      setState(() {
-        if (ordersBySearch.isNotEmpty) {
-          ordersBySearch[selectedOrder].id = tECID.text.trim();
-          ordersBySearch[selectedOrder].id =
-              tECID.text.trim().replaceAll(" ", "");
-        } else {
-          orders[selectedOrder].id = tECID.text.trim();
-          orders[selectedOrder].id = tECID.text.trim().replaceAll(" ", "");
+      if (isSingle) {
+        selectedOrder!.id = tECID.text.trim();
+        selectedOrder!.idSearch = tECID.text.trim().replaceAll(" ", "");
+      } else {
+        if (selectedOrder!.databaseReference == valueOrder.databaseReference) {
+          selectedOrder!.id = tECID.text.trim();
+          selectedOrder!.idSearch = tECID.text.trim().replaceAll(" ", "");
         }
-      });
-    }
-
-    Navigator.pop(context);
-  }
-
-  Future searchById(String id) async {
-    SimpleUIs().showProgressIndicator(context);
-    await Database.getOrders(context: context, idSearch: id).then((value) {
-      if (value != null) {
-        setState(() {
-          ordersBySearch = value;
-        });
+        ordersToUpdateID!
+            .firstWhere((element) =>
+                element.databaseReference == valueOrder.databaseReference)
+            .id = tECID.text.trim();
+        ordersToUpdateID!
+            .firstWhere((element) =>
+                element.databaseReference == valueOrder.databaseReference)
+            .idSearch = tECID.text.trim().replaceAll(" ", "");
       }
-    });
 
-    Navigator.pop(context);
-  }
-
-  Future deleteOrder(int index) async {
-    SimpleUIs().showProgressIndicator(context);
-    bool? boolen = await Database.deleteOrder(
-        context: context, databaseReference: orders[index].databaseReference!);
-    Navigator.pop(context);
-    if (boolen == null) {
-      return;
-    }
-    if (boolen) {
-      orders.removeAt(index);
-      print(orders);
       box.put("orders", orders);
-      setState(() {});
+      // if (ordersBySearch.isNotEmpty) {
+      //   ordersBySearch[selectedOrder].id = tECID.text.trim();
+      //   ordersBySearch[selectedOrder].id =
+      //       tECID.text.trim().replaceAll(" ", "");
+      // } else {
+      //   orders[selectedOrder].id = tECID.text.trim();
+      //   orders[selectedOrder].id = tECID.text.trim().replaceAll(" ", "");
+      // }
+
     }
+    setState(() {});
+    Navigator.pop(context);
   }
+
+  // Future searchById(String id) async {
+  //   SimpleUIs().showProgressIndicator(context);
+  //   await Database.getOrders(context: context, idSearch: id).then((value) {
+  //     if (value != null) {
+  //       value.removeWhere((element) => element.status != OrderStatus.waiting);
+  //       setState(() {
+  //         ordersBySearch = value;
+  //       });
+  //     }
+  //   });
+
+  //   Navigator.pop(context);
+  // }
+
+  // Future deleteOrder(int index) async {
+  //   SimpleUIs().showProgressIndicator(context);
+  //   bool? boolen = await Database.deleteOrder(
+  //       context: context, databaseReference: orders[index].databaseReference!);
+  //   Navigator.pop(context);
+  //   if (boolen == null) {
+  //     return;
+  //   }
+  //   if (boolen) {
+  //     orders.removeAt(index);
+  //     print(orders);
+  //     box.put("orders", orders);
+  //     setState(() {});
+  //   }
+  // }
 }

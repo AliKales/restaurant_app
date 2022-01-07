@@ -11,10 +11,10 @@ class Order {
     required this.date,
     required this.id,
     required this.foods,
-    this.price=0,
+    this.price = 0,
     required this.databaseReference,
     required this.idSearch,
-    this.note="",
+    this.note = "",
     required this.status,
   });
 
@@ -71,6 +71,8 @@ class Order {
         return OrderStatus.ready;
       case "waiting":
         return OrderStatus.waiting;
+      case "updating":
+        return OrderStatus.updating;
       default:
         return OrderStatus.waiting;
     }
@@ -84,6 +86,8 @@ class Order {
         return "ready";
       case OrderStatus.waiting:
         return "waiting";
+      case OrderStatus.updating:
+        return "updating";
       default:
         return "waiting";
     }

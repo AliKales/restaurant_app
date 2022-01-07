@@ -30,7 +30,7 @@ class ChefPage extends StatefulWidget {
 
 class _ChefPageState extends State<ChefPage> {
   List<Order> orders = [];
-  final _innerList = <WidgetOrderTicket>[];
+  List _innerList = <WidgetOrderTicket>[];
 
   Personnel? personnel;
 
@@ -38,6 +38,7 @@ class _ChefPageState extends State<ChefPage> {
   TextEditingController tECUsername = TextEditingController();
 
   bool progress1 = false;
+  bool progress2 = true;
 
   String lastDeleted = "";
 

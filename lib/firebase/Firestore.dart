@@ -306,8 +306,8 @@ class Firestore {
           .collection("personnels")
           .limit(1)
           .where('role', isEqualTo: role)
-          .where('username', isEqualTo: username)
-          .where('password', isEqualTo: password)
+          .where('username', isEqualTo: username.trim())
+          .where('password', isEqualTo: password.trim())
           .get();
 
       if (staff.docs.isEmpty) {

@@ -18,7 +18,7 @@ class AddFoodPage extends StatefulWidget {
 }
 
 class _AddFoodPageState extends State<AddFoodPage> {
-  List foods = Lists.foods?['data']??[];
+  List foods = Lists.foods?['data'] ?? [];
 
   List<String> categories = ["-Categories-", "All"];
 
@@ -160,8 +160,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
           Expanded(
             child: ListView.builder(
               itemCount: foods.length,
-              itemBuilder: (_, index) {
-                if (!widget.pickedFoods.contains(foods[index]) &&
+              itemBuilder: (_, index) {  
+                if (widget.pickedFoods.indexWhere((element) => element.searchName==foods[index].searchName)==-1 &&
                         categories[pickedCategory] == categories[1] ||
                     categories[pickedCategory] == foods[index].category) {
                   return widgetContainerFood(foods[index].name, index, false);

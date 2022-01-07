@@ -64,7 +64,7 @@ class _WaiterPageState extends State<WaiterPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppbarForPersons(
-        text: "Staff",
+        text: "Waiter",
         actions: [
           Visibility(
             visible: personnel != null,
@@ -232,7 +232,7 @@ class _WaiterPageState extends State<WaiterPage> {
                   context: context,
                   username: tECUsername.text,
                   password: tECPassword.text,
-                  role: "Staff")
+                  role: "Waiter")
               .then((value) {
             if (value != null) {
               personnel = value;

@@ -9,5 +9,7 @@ enum OrderStatus{
   @HiveField(1)
   cooking,
   @HiveField(2)
-  ready
+  ready,
+  @HiveField(3)
+  updating
 }

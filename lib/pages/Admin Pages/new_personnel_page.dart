@@ -15,7 +15,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class NewPersonnelPage extends StatefulWidget {
   const NewPersonnelPage(
-      {Key? key, required this.restaurant, required this.logedIn, required this.goToPayment})
+      {Key? key,
+      required this.restaurant,
+      required this.logedIn,
+      required this.goToPayment})
       : super(key: key);
   final Restaurant restaurant;
   final Function() logedIn;
@@ -100,7 +103,21 @@ class _NewPersonnelPageState extends State<NewPersonnelPage>
                                 .subtitle1!
                                 .copyWith(color: color4),
                           ),
-                          TextButton(onPressed: (){widget.goToPayment.call();}, child: Text("Pay",style: Theme.of(context).textTheme.subtitle1!.copyWith(color: color2),))
+                          TextButton(
+                              onPressed: () {
+                                if (daysLeft! <= 30) {
+                                  widget.goToPayment.call();
+                                } else {
+                                  Funcs().showSnackBar(context, "For now you can purchase maximum 60 days!");
+                                }
+                              },
+                              child: Text(
+                                "Pay",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .subtitle1!
+                                    .copyWith(color: color2),
+                              ))
                         ],
                       ),
                 SizedBox(

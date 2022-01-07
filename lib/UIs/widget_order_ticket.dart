@@ -1,7 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
+import 'package:restaurant_app/firebase/Auth.dart';
 import 'package:restaurant_app/firebase/Database.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
@@ -20,6 +23,7 @@ class WidgetOrderTicket extends StatefulWidget {
       this.pay,
       this.isBorder = false,
       this.doubleTap,
+      this.isChef = true,
       this.delete})
       : super(key: key);
   final Order order;
@@ -30,6 +34,7 @@ class WidgetOrderTicket extends StatefulWidget {
   final Function()? delete;
   final bool isCashier;
   final bool isBorder;
+  final bool isChef;
 
   @override
   State createState() => WidgetOrderTicketState();
@@ -84,45 +89,42 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
     return Slidable(
       key: const ValueKey(3),
       // The start action pane is the one at the left or the top side.
-      startActionPane: ActionPane(
-        // A motion is a widget used to control how the pane animates.
-        motion: const ScrollMotion(),
-        children: [
-          // A SlidableAction can have an icon and/or a label.
-          SlidableAction(
-            onPressed: (context) async {
-              if (widget.order.status == OrderStatus.waiting) {
-                await Database.updateOrder(
-                    context: context,
-                    databaseReference: widget.order.databaseReference!,
-                    update: {
-                      'status': Order.enumToString(OrderStatus.cooking)
-                    });
-              } else {
-                await Database.updateOrder(
-                    context: context,
-                    databaseReference: widget.order.databaseReference!,
-                    update: {
-                      'status': Order.enumToString(OrderStatus.waiting)
-                    });
-              }
-            },
-            backgroundColor: widget.order.status == OrderStatus.waiting
-                ? Colors.yellow[700]!
-                : Colors.red,
-            foregroundColor: Colors.white,
-            icon: widget.order.status == OrderStatus.waiting
-                ? Icons.done
-                : Icons.cancel,
-            label: widget.order.status == OrderStatus.waiting
-                ? "COOKING"
-                : "NO COOK",
-          ),
-        ],
-      ),
-      endActionPane: widget.order.status != OrderStatus.cooking
+      startActionPane: (widget.order.status == OrderStatus.updating ||
+              !widget.isChef)
           ? null
           : ActionPane(
+              // A motion is a widget used to control how the pane animates.
+              motion: const ScrollMotion(),
+              children: [
+                // A SlidableAction can have an icon and/or a label.
+                SlidableAction(
+                  onPressed: (context) async {
+                    if (widget.order.status == OrderStatus.waiting) {
+                      update();
+                    } else {
+                      await Database.updateOrder(
+                          context: context,
+                          databaseReference: widget.order.databaseReference!,
+                          update: {
+                            'status': Order.enumToString(OrderStatus.waiting)
+                          });
+                    }
+                  },
+                  backgroundColor: widget.order.status == OrderStatus.waiting
+                      ? Colors.yellow[700]!
+                      : Colors.red,
+                  foregroundColor: Colors.white,
+                  icon: widget.order.status == OrderStatus.waiting
+                      ? Icons.done
+                      : Icons.cancel,
+                  label: widget.order.status == OrderStatus.waiting
+                      ? "COOKING"
+                      : "NO COOK",
+                ),
+              ],
+            ),
+      endActionPane: widget.order.status == OrderStatus.cooking
+          ? ActionPane(
               motion: const ScrollMotion(),
               children: [
                 SlidableAction(
@@ -136,7 +138,8 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
                   label: 'READY',
                 ),
               ],
-            ),
+            )
+          : null,
       child: widgetChild(context),
     );
   }
@@ -148,7 +151,7 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
       },
       onLongPress: () {
         if (widget.order.note != "") {
-          widget.longPress != null ? (widget.order.note) : () {};
+          widget.longPress?.call(widget.order.note) ?? () {};
         }
       },
       child: Container(
@@ -157,9 +160,7 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
         decoration: BoxDecoration(
             border:
                 !widget.isBorder ? null : Border.all(color: color2, width: 8),
-            color: widget.order.status == OrderStatus.cooking
-                ? Colors.yellow[700]!
-                : color4,
+            color: backgroundColor(),
             borderRadius: BorderRadius.all(Radius.circular(6))),
         width: double.maxFinite,
         child: Column(
@@ -207,5 +208,70 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
         ),
       ),
     );
+  }
+
+  Color backgroundColor() {
+    switch (widget.order.status) {
+      case OrderStatus.cooking:
+        return Colors.yellow[700]!;
+      case OrderStatus.waiting:
+        return color4;
+      case OrderStatus.updating:
+        return Colors.lightBlue;
+
+      default:
+        return color4;
+    }
+  }
+
+  //FUNCTIONSSSSSSSSSSSSSSSSSSSSSS
+
+  Future update() async {
+    try {
+      FirebaseDatabase(
+              databaseURL:
+                  "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+          .reference()
+          .child("orders")
+          .child(Auth().getUID())
+          .child(widget.order.databaseReference!)
+          .runTransaction((mutableData) {
+        if (mutableData.value == null) {
+          Navigator.pop(context);
+          Funcs().showSnackBar(context, "ERROR! PLEASE TRY AGAIN");
+          return mutableData;
+        }
+        SimpleUIs().showProgressIndicator(context);
+        if (Order.fromJson(mutableData.value).status == OrderStatus.updating) {
+          Database.updateOrder(
+                  context: context,
+                  databaseReference: widget.order.databaseReference!,
+                  update: {'status': Order.enumToString(OrderStatus.updating)})
+              .then((value) {
+            Navigator.pop(context);
+          });
+          Funcs().showSnackBar(context, "This order is getting Updated..");
+        } else if (Order.fromJson(mutableData.value).status !=
+            OrderStatus.ready) {
+          Database.updateOrder(
+                  context: context,
+                  databaseReference: widget.order.databaseReference!,
+                  update: {'status': Order.enumToString(OrderStatus.cooking)})
+              .then((value) {
+            Navigator.pop(context);
+          });
+        } else {
+          Navigator.pop(context);
+        }
+
+        return mutableData;
+      });
+    } on FirebaseException {
+      Navigator.pop(context);
+      Funcs().showSnackBar(context, "ERROR!");
+    } catch (e) {
+      Navigator.pop(context);
+      Funcs().showSnackBar(context, "ERROR!");
+    }
   }
 }

@@ -23,37 +23,38 @@ class SimpleUIs {
 
   Future showProgressIndicator(context) async {
     FocusScope.of(context).unfocus();
-    await showGeneralDialog(
-        barrierLabel: "Barrier",
-        barrierDismissible: false,
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionDuration: const Duration(milliseconds: 500),
-        context: context,
-        pageBuilder: (_, __, ___) {
-          return WillPopScope(
-            onWillPop: () async => false,
-            child: Center(
-              child: progressIndicator(),
-            ),
-          );
-        });
+    if (ModalRoute.of(context)?.isCurrent ?? true) {
+      await showGeneralDialog(
+          barrierLabel: "Barrier",
+          barrierDismissible: false,
+          barrierColor: Colors.black.withOpacity(0.5),
+          transitionDuration: const Duration(milliseconds: 500),
+          context: context,
+          pageBuilder: (_, __, ___) {
+            return WillPopScope(
+              onWillPop: () async => false,
+              child: Center(
+                child: progressIndicator(),
+              ),
+            );
+          });
+    }
   }
 
-  static Future showCustomGeneralDialog({
-    required context,
-    bool? barrierDismissible,
-    required Widget widget
-  }) async {
+  static Future showCustomGeneralDialog(
+      {required context,
+      bool? barrierDismissible,
+      required Widget widget}) async {
     FocusScope.of(context).unfocus();
     await showGeneralDialog(
         barrierLabel: "Barrier",
-        barrierDismissible: barrierDismissible??false,
+        barrierDismissible: barrierDismissible ?? false,
         barrierColor: Colors.black.withOpacity(0.5),
         transitionDuration: const Duration(milliseconds: 500),
         context: context,
         pageBuilder: (_, __, ___) {
           return WillPopScope(
-            onWillPop: () async => barrierDismissible??false,
+            onWillPop: () async => barrierDismissible ?? false,
             child: widget,
           );
         });

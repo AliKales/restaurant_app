@@ -19,6 +19,8 @@ class OrderStatusAdapter extends TypeAdapter<OrderStatus> {
         return OrderStatus.cooking;
       case 2:
         return OrderStatus.ready;
+      case 3:
+        return OrderStatus.updating;
       default:
         return OrderStatus.waiting;
     }
@@ -35,6 +37,9 @@ class OrderStatusAdapter extends TypeAdapter<OrderStatus> {
         break;
       case OrderStatus.ready:
         writer.writeByte(2);
+        break;
+      case OrderStatus.updating:
+        writer.writeByte(3);
         break;
     }
   }

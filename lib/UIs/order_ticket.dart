@@ -14,9 +14,12 @@ class OrderTicket extends StatefulWidget {
   const OrderTicket(
       {Key? key,
       required this.price,
+      this.isTextFieldActive = true,
+      this.id = "",
       required this.foods,
       this.progress2,
       this.noTouch = false,
+      this.absoring = false,
       this.tECID,
       this.add,
       required this.inkWellOnTap,
@@ -27,9 +30,12 @@ class OrderTicket extends StatefulWidget {
       : super(key: key);
 
   final double price;
+  final bool isTextFieldActive;
+  final String id;
   final List<Food> foods;
   final bool? progress2;
   final bool noTouch;
+  final bool absoring;
   final TextEditingController? tECID;
   final Function()? add;
   final Function(int index)? inkWellOnTap;
@@ -50,48 +56,55 @@ class _OrderTicketState extends State<OrderTicket> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Slidable(
-        key: const ValueKey(0),
-        // The start action pane is the one at the left or the top side.
-        startActionPane: ActionPane(
-          // A motion is a widget used to control how the pane animates.
-          motion: const ScrollMotion(),
-          children: [
-            // A SlidableAction can have an icon and/or a label.
-            SlidableAction(
-              onPressed: (context) => widget.funcDelete?.call() ?? {},
-              backgroundColor: Color(0xFFFE4A49),
-              foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: 'Delete',
-            ),
-          ],
-        ),
+      child: AbsorbPointer(
+        absorbing: widget.absoring,
+        child: Slidable(
+          key: const ValueKey(0),
+          // The start action pane is the one at the left or the top side.
+          startActionPane: widget.id != ""
+              ? null
+              : ActionPane(
+                  // A motion is a widget used to control how the pane animates.
+                  motion: const ScrollMotion(),
+                  children: [
+                    // A SlidableAction can have an icon and/or a label.
+                    SlidableAction(
+                      onPressed: (context) => widget.funcDelete?.call() ?? {},
+                      backgroundColor: Color(0xFFFE4A49),
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
 
-        // The end action pane is the one at the right or the bottom side.
-        endActionPane: ActionPane(
-          motion: const ScrollMotion(),
-          children: [
-            SlidableAction(
-              // An action can be bigger than the others.
-              onPressed: (context) => widget.funcOrder?.call() ?? {},
-              backgroundColor: Color(0xFF7BC043),
-              foregroundColor: Colors.white,
-              icon: Icons.archive,
-              label: 'Order',
-            ),
-          ],
-        ),
-        child: ChildOrderTicket(
-          noTouch: widget.noTouch,
-          progress2: widget.progress2,
-          foods: widget.foods,
-          inkWellOnTap: widget.inkWellOnTap,
-          price: widget.price,
-          add: widget.add,
-          tECID: widget.tECID,
-          buttonText: widget.buttonText,
-          longPress: widget.longPress,
+          // The end action pane is the one at the right or the bottom side.
+          endActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                // An action can be bigger than the others.
+                onPressed: (context) => widget.funcOrder?.call() ?? {},
+                backgroundColor: Color(0xFF7BC043),
+                foregroundColor: Colors.white,
+                icon: Icons.archive,
+                label: 'Order',
+              ),
+            ],
+          ),
+          child: ChildOrderTicket(
+            noTouch: widget.noTouch,
+            progress2: widget.progress2,
+            foods: widget.foods,
+            inkWellOnTap: widget.inkWellOnTap,
+            price: widget.price,
+            add: widget.add,
+            tECID: widget.tECID,
+            buttonText: widget.buttonText,
+            longPress: widget.longPress,
+            id: widget.id,
+            isTextFieldActive: widget.isTextFieldActive,
+          ),
         ),
       ),
     );
@@ -102,6 +115,7 @@ class ChildOrderTicket extends StatelessWidget {
   const ChildOrderTicket(
       {Key? key,
       required this.price,
+      this.isTextFieldActive = true,
       required this.foods,
       this.progress2,
       this.noTouch = false,
@@ -109,10 +123,13 @@ class ChildOrderTicket extends StatelessWidget {
       this.add,
       required this.inkWellOnTap,
       this.shrinkWrap = false,
-      this.buttonText = "ADD", this.longPress})
+      this.buttonText = "ADD",
+      this.id = "",
+      this.longPress})
       : super(key: key);
 
   final double price;
+  final bool isTextFieldActive;
   final List<Food> foods;
   final bool? progress2;
   final bool noTouch;
@@ -122,15 +139,17 @@ class ChildOrderTicket extends StatelessWidget {
   final Function()? longPress;
   final bool shrinkWrap;
   final String buttonText;
+  final String id;
 
   @override
   Widget build(BuildContext context) {
+    if (id != "" && tECID != null) tECID?.text = id;
     return Stack(
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: InkWell(
-            onLongPress: () => longPress?.call()??{},
+            onLongPress: () => longPress?.call() ?? {},
             child: Container(
               width: double.infinity,
               color: color4,
@@ -159,21 +178,23 @@ class ChildOrderTicket extends StatelessWidget {
                       func: add ?? () {},
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CustomTextField(
-                      textEditingController: tECID,
-                      isFilled: true,
-                      readOnly: noTouch,
-                      filledColor: Colors.grey[350],
-                      text: "Id or Name:",
-                      colorHint: Colors.black,
-                      textStyle: Theme.of(context)
-                          .textTheme
-                          .subtitle1!
-                          .copyWith(color: Colors.black),
-                    ),
-                  ),
+                  isTextFieldActive == false
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CustomTextField(
+                            textEditingController: tECID,
+                            isFilled: true,
+                            readOnly: noTouch,
+                            filledColor: Colors.grey[350],
+                            text: "Id or Name:",
+                            colorHint: Colors.black,
+                            textStyle: Theme.of(context)
+                                .textTheme
+                                .subtitle1!
+                                .copyWith(color: Colors.black),
+                          ),
+                        ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Divider(

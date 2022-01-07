@@ -46,7 +46,9 @@ class Funcs {
     }
   }
 
+
   void showSnackBar(context, String text) {
+    FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
@@ -190,23 +192,18 @@ class Funcs {
     required final context,
     final String? personnelUsername,
   }) async {
-    DateTime? currentGlobalTime;
-    if (personnelUsername == null) {
-      currentGlobalTime = await Funcs().getCurrentGlobalTime(context);
-      if(currentGlobalTime==null){        
-        return null;
-      }
-    } else {
-      currentGlobalTime = DateTime.now();
-    }
+    DateTime currentGlobalTime = DateTime.now();
 
     DateTime day = DateTime(3000, 04, 04, 23, 59, 59);
+
+
     String id = day.difference(currentGlobalTime).toString();
+    id=currentGlobalTime.toString();
     id = id.replaceAll(":", "");
     id = id.replaceAll(".", "");
     id = id.substring(0, id.length - 6);
-    if(personnelUsername!=null){
-      id="$personnelUsername$id";
+    if (personnelUsername != null) {
+      id = "$id$personnelUsername";
     }
     return id;
   }

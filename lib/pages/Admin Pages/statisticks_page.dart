@@ -51,6 +51,10 @@ class _StatisticksPageState extends State<StatisticksPage> {
   double maximum = 0;
   double interval = 10;
 
+  Map map1 = {};
+  Map map2 = {};
+  Map map3 = {};
+
   var box = Hive.box("database");
 
   List<String> monthsString = [
@@ -224,6 +228,10 @@ class _StatisticksPageState extends State<StatisticksPage> {
                 );
               },
             ),
+            SizedBox(
+              height: SizeConfig().setHight(1),
+            ),
+            widgetTextForTotal(0, Alignment.centerRight),
             const Divider(
               color: Colors.black,
               height: 15,
@@ -242,6 +250,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
                       list1Selected = value;
                       list(value, months[value], setState);
                     }),
+                    widgetTextForTotal(1, Alignment.bottomLeft),
                     SfCartesianChart(
                       plotAreaBorderColor: color4,
                       primaryXAxis: CategoryAxis(
@@ -293,6 +302,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
                     list2SelectedFood = allFoods[value]['name'];
                     list2(value, setState);
                   }),
+                  widgetTextForTotal(2, Alignment.centerLeft),
                   SfCartesianChart(
                     primaryYAxis:
                         NumericAxis(labelStyle: const TextStyle(color: color4)),
@@ -316,10 +326,12 @@ class _StatisticksPageState extends State<StatisticksPage> {
               color: Colors.black,
               height: 10,
             ),
-            widgetTextInfoForCharts("Distribution of this month's sales amount by days:"),
+            widgetTextInfoForCharts(
+                "Distribution of this month's sales amount by days:"),
             StatefulBuilder(
               builder: (context, setState) => Column(
                 children: [
+                  widgetTextForTotal(3, Alignment.centerLeft),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -412,7 +424,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
             SizedBox(
               height: SizeConfig().setHight(3),
             ),
-            widgetTextInfoForCharts("Distribution of this year's sales amount by months:"),
+            widgetTextInfoForCharts(
+                "Distribution of this year's sales amount by months:"),
             SizedBox(
               height: SizeConfig().setHight(5),
             ),
@@ -442,6 +455,16 @@ class _StatisticksPageState extends State<StatisticksPage> {
                   )
           ],
         ),
+      ),
+    );
+  }
+
+  Align widgetTextForTotal(int val, Alignment alignment) {
+    return Align(
+      alignment: alignment,
+      child: Text(
+        allFoodsTotalPriceAndCount(val),
+        style: Theme.of(context).textTheme.headline6!.copyWith(color: color4),
       ),
     );
   }
@@ -645,7 +668,32 @@ class _StatisticksPageState extends State<StatisticksPage> {
 
   //FUNCTİONS//---------------
 
+  String allFoodsTotalPriceAndCount(int val) {
+    double price = 0;
+    int count = 0;
+
+    if (val == 0) {
+      for (var item in allFoods) {
+        price += item['price'];
+        count += item['count'] as int;
+      }
+    } else if (val == 1) {
+      count = map1["count"] ?? 0;
+
+      price = map1["totalPrice"]?.toDouble() ?? 0.0;
+    } else if (val == 2) {
+      count = map2["count"] ?? 0;
+      price = map2["totalPrice"]?.toDouble() ?? 0.0;
+    }else if (val==3){
+      count = map3["count"] ?? 0;
+      price = map3["totalPrice"]?.toDouble() ?? 0.0;
+    }
+
+    return "Total: ${Funcs().formatMoney(price)} - Count: $count";
+  }
+
   void list(index, monthIndex, StateSetter setState) {
+    map1 = {'count': 0, 'totalPrice': 0};
     chartDatas = [];
     charts = [];
     maximum = 0;
@@ -655,6 +703,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
       List<Food> listFood = List<Food>.generate(
           order.foods.length, (index) => Food.fromJson(order.foods[index]));
       for (var food in listFood) {
+        map1['count'] += food.count;
+        map1['totalPrice'] += double.parse(food.price);
         int index =
             chartDatas.indexWhere((element) => element['name'] == food.name);
         if (index == -1) {
@@ -675,10 +725,12 @@ class _StatisticksPageState extends State<StatisticksPage> {
     do {
       maximum++;
     } while (maximum % interval == 0);
+
     setState(() {});
   }
 
   void list2(int whichfood, StateSetter setState) {
+    map2 = {'count': 0, 'totalPrice': 0};
     salesDatas = [];
     List liste = [];
 
@@ -694,6 +746,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
             order.foods.length, (a) => Food.fromJson(order.foods[a]));
         for (var food in listFood) {
           if (food.name == allFoods[whichfood]['name']) {
+            map2['count'] += food.count;
+            map2['totalPrice'] += double.parse(food.price);
             int index =
                 liste.indexWhere((element) => element['name'] == food.name);
             if (index == -1) {
@@ -728,6 +782,7 @@ class _StatisticksPageState extends State<StatisticksPage> {
   }
 
   void list4(StateSetter setState) {
+    map3 = {'count': 0, 'totalPrice': 0};
     for (var item in chartDataWeek) {
       item.y = 0;
     }
@@ -739,6 +794,8 @@ class _StatisticksPageState extends State<StatisticksPage> {
           .substring(0, 3);
       int inte = chartDataWeek.indexWhere((element) => element.x == day);
       for (var food in item['foods']) {
+        map3['count'] += food['count'] as int;
+        map3['totalPrice'] += double.parse(food['price']);
         counter += food['count'] as int;
       }
       chartDataWeek[inte].y += counter;

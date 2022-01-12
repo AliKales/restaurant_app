@@ -46,7 +46,6 @@ class Funcs {
     }
   }
 
-
   void showSnackBar(context, String text) {
     FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -57,14 +56,10 @@ class Funcs {
     DateTime? now;
     try {
       Response response = await get(
-          Uri.parse(
-            "http://worldtimeapi.org/api/timezone/Europe/Istanbul",
-          ),
-          headers: {
-            "Access-Control-Allow-Origin": " *",
-            "Access-Control-Allow-Headers":
-                "Access-Control-Allow-Origin, Accept"
-          });
+        Uri.parse(
+          "http://worldtimeapi.org/api/timezone/Europe/Istanbul",
+        ),
+      );
       Map worldData = jsonDecode(response.body);
       now = DateTime(
         int.parse(worldData['datetime'].substring(0, 4)),
@@ -82,19 +77,32 @@ class Funcs {
     return now;
   }
 
-  Future<DateTime?> getCurrentGlobalTimeForRestaurantCreating(context) async {
-    Map<String, String> requestHeaders = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json',
-    };
+  Future<DateTime?> gCGT2(context) async {
     DateTime? now;
     try {
       Response response = await get(
-          Uri.parse(
-            //"https://www.timeapi.io/api/Time/current/coordinate?latitude=41.015137&longitude=28.979530"
-            "http://worldtimeapi.org/api/timezone/Europe/Istanbul",
-          ),
-          headers: requestHeaders);
+        Uri.parse(
+          "https://www.timeapi.io/api/Time/current/coordinate?latitude=41.015137&longitude=28.979530",
+        ),
+      );
+      Map worldData = jsonDecode(response.body);
+      now = DateTime.parse(worldData['dateTime']);
+    } catch (e) {
+      now = null;
+      Funcs().showSnackBar(context,
+          "Unexpected error, please try again later or check app update!");
+    }
+    return now;
+  }
+
+  Future<DateTime?> getCurrentGlobalTimeForRestaurantCreating(context) async {
+    DateTime? now;
+    try {
+      Response response = await get(
+        Uri.parse(
+          "http://worldtimeapi.org/api/timezone/Europe/Istanbul",
+        ),
+      );
       Map worldData = jsonDecode(response.body);
       now = DateTime(
         int.parse(worldData['datetime'].substring(0, 4)),
@@ -105,10 +113,7 @@ class Funcs {
         int.parse(worldData['datetime'].substring(17, 19)),
       );
     } catch (e) {
-      now = null;
-      Funcs().showSnackBar(context, e.toString());
-      // Funcs().showSnackBar(context,
-      //     "Unexpected error, please try again later or check app update!");
+      now = await gCGT2(context);
     }
 
     return now;
@@ -196,9 +201,8 @@ class Funcs {
 
     DateTime day = DateTime(3000, 04, 04, 23, 59, 59);
 
-
     String id = day.difference(currentGlobalTime).toString();
-    id=currentGlobalTime.toString();
+    id = currentGlobalTime.toString();
     id = id.replaceAll(":", "");
     id = id.replaceAll(".", "");
     id = id.substring(0, id.length - 6);

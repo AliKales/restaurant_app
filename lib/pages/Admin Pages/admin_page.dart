@@ -47,6 +47,8 @@ class _AdminPageState extends State<AdminPage> {
 
   bool paymentForMoreDays = false;
 
+  bool isPaid=false;
+
   int drawerTappedIndex = 0;
 
   Builders builder = Builders.loading;
@@ -116,6 +118,7 @@ class _AdminPageState extends State<AdminPage> {
                   Funcs().showSnackBar(
                       context, "Your payment has been successfully received.");
                   setState(() {
+                    isPaid=true;
                     progress3 = false;
                     paymentForMoreDays = false;
                   });
@@ -168,6 +171,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future futureBuilder() async {
+    isPaid=widget.isPaid;
     //if no restaurant saved before then it returns false and it checks from database
     await Firestore().getRestaurant(context).then((value) {
       if (value == null) {
@@ -290,7 +294,7 @@ class _AdminPageState extends State<AdminPage> {
             .copyWith(color: Colors.red, fontWeight: FontWeight.bold),
       ));
     } else if (builder == Builders.noData ||
-        !widget.isPaid ||
+        !isPaid ||
         paymentForMoreDays) {
       return widgetMustBuy(context);
     } else {
@@ -367,6 +371,9 @@ class _AdminPageState extends State<AdminPage> {
                   text: "PAY",
                   loading: progress2,
                   func: () async {
+                    if (restaurant!=null) {
+                      paymentForMoreDays=true;
+                    }
                     pay();
                   },
                 ),

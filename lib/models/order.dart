@@ -61,7 +61,7 @@ class Order {
             databaseReference: json['databaseReference'],
             idSearch: json['idSearch'],
             note: json['note'] ?? "",
-            status: stringToEnum(json['status']));
+            status: stringToEnum(json['status']??"waiting"));
 
   static OrderStatus stringToEnum(String value) {
     switch (value) {

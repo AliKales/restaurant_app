@@ -7,6 +7,7 @@ import 'package:restaurant_app/UIs/widget_order_ticket.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Auth.dart';
 import 'package:restaurant_app/firebase/Database.dart';
+import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/food.dart';
 
 import 'package:restaurant_app/models/order.dart';
@@ -56,17 +57,7 @@ class _ChefPageState extends State<ChefPage> {
         .child(Auth().getUID())
         .onChildRemoved
         .listen((event) {
-      int index = orders.indexWhere((element) =>
-          element.databaseReference ==
-          event.snapshot.value['databaseReference']);
-      if (index != -1 &&
-          lastDeleted != event.snapshot.value['databaseReference']) {
-        orders.removeAt(index);
-        _innerList.removeAt(index);
-        if (mounted) {
-          setState(() {});
-        }
-      }
+      deleteFromWidget(event.snapshot.value['databaseReference']);
     });
     FirebaseDatabase(
             databaseURL:
@@ -86,27 +77,7 @@ class _ChefPageState extends State<ChefPage> {
         if (Order.fromJson(event.snapshot.value).status != OrderStatus.ready) {
           orders.insert(index, Order.fromJson(event.snapshot.value));
 
-          _innerList.insert(
-              index,
-              WidgetOrderTicket(
-                order: Order.fromJson(event.snapshot.value),
-                longPress: (note) {
-                  SimpleUIs.showCustomDialog(
-                      context: context,
-                      title: "NOTE:",
-                      content: Text(
-                        note ?? "",
-                        style: Theme.of(context)
-                            .textTheme
-                            .headline6!
-                            .copyWith(color: color4),
-                      ));
-                },
-                funcDone: () async {
-                  doneOrder(
-                      Order.fromJson(event.snapshot.value).databaseReference);
-                },
-              ));
+          _innerList.insert(index, getWidgetOrderTicket(event.snapshot.value));
         }
 
         if (mounted) {
@@ -127,24 +98,7 @@ class _ChefPageState extends State<ChefPage> {
       if (Order.fromJson(event.snapshot.value).status != OrderStatus.ready) {
         orders.add(order);
 
-        _innerList.add(WidgetOrderTicket(
-          order: order,
-          longPress: (note) {
-            SimpleUIs.showCustomDialog(
-                context: context,
-                title: "NOTE:",
-                content: Text(
-                  note ?? "",
-                  style: Theme.of(context)
-                      .textTheme
-                      .headline6!
-                      .copyWith(color: color4),
-                ));
-          },
-          funcDone: () async {
-            doneOrder(order.databaseReference);
-          },
-        ));
+        _innerList.add(getWidgetOrderTicket(order));
       }
 
       setState(() {});
@@ -206,7 +160,101 @@ class _ChefPageState extends State<ChefPage> {
     ]);
   }
 
+  Widget getWidgetOrderTicket(value) {
+    if (value.runtimeType != Order) {
+      value = Order.fromJson(value);
+    }
+    return WidgetOrderTicket(
+      order: value,
+      doubleTap: () {
+        doubleTap(value);
+      },
+      longPress: (note) {
+        SimpleUIs.showCustomDialog(
+            context: context,
+            title: "NOTE:",
+            content: Text(
+              note ?? "",
+              style: Theme.of(context)
+                  .textTheme
+                  .headline6!
+                  .copyWith(color: color4),
+            ));
+      },
+      funcDone: () async {
+        doneOrder(value.databaseReference);
+      },
+    );
+  }
+
   //FUNCTİONS --------------
+
+  void deleteFromWidget(String databaseReference) {
+    int index = orders.indexWhere(
+        (element) => element.databaseReference == databaseReference);
+    if (index != -1 && lastDeleted != databaseReference) {
+      orders.removeAt(index);
+      _innerList.removeAt(index);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  void doubleTap(Order order) {
+    SimpleUIs.showCustomDialog(
+        context: context,
+        title: "DELETE",
+        content: Text(
+          "Do you want to delete only this Order or all others which has same ID\nID= ${order.id}",
+          style: Theme.of(context).textTheme.subtitle1!.copyWith(color: color4),
+        ),
+        actions: [
+          CustomGradientButton(
+            context: context,
+            text: "ALL",
+            longPress: () async {
+              Navigator.pop(context);
+              SimpleUIs().showProgressIndicator(context);
+              await deleteAllOrders(order.idSearch);
+              Navigator.pop(context);
+            },
+            func: () {
+              Funcs().showSnackBar(context, "LONG PRESS!!!");
+            },
+          ),
+          CustomGradientButton(
+            context: context,
+            text: "ONLY",
+            longPress: () async {
+              Navigator.pop(context);
+              SimpleUIs().showProgressIndicator(context);
+              await deleteOrder(order);
+              Navigator.pop(context);
+            },
+            func: () {
+              Funcs().showSnackBar(context, "LONG PRESS!!!");
+            },
+          )
+        ]);
+  }
+
+  Future deleteAllOrders(String idSearch) async {
+    List<Order> list = orders.toList();
+    list.removeWhere((element) => element.idSearch != idSearch);
+    for (var item in list) {
+      await deleteOrder(item);
+    }
+  }
+
+  Future deleteOrder(Order order) async {
+    bool? response = await Database.deleteOrder(
+        context: context, databaseReference: order.databaseReference!);
+
+    if (response != null && response) {
+      deleteFromWidget(order.databaseReference!);
+    }
+  }
 
   Future doneOrder(databaseReference) async {
     lastDeleted = databaseReference;

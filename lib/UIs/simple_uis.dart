@@ -214,4 +214,21 @@ class SimpleUIs {
       },
     );
   }
+
+  static Widget emptyWidget({
+    double? height,
+    double? width,
+  }) {
+    if (height == null && width == null) {
+      return const SizedBox.shrink();
+    } else if (width == null) {
+      return SizedBox(
+        height: SizeConfig().setHight(height!),
+      );
+    } else {
+      return SizedBox(
+        width: SizeConfig().setHight(width),
+      );
+    }
+  }
 }

@@ -6,6 +6,7 @@ import 'package:restaurant_app/UIs/appbar_persons.dart';
 import 'package:restaurant_app/UIs/custom_gradient_button.dart';
 import 'package:restaurant_app/UIs/custom_textfield.dart';
 import 'package:restaurant_app/UIs/login_page.dart';
+import 'package:restaurant_app/UIs/note_page_widget.dart';
 import 'package:restaurant_app/UIs/order_ticket.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
@@ -37,15 +38,14 @@ class _WaiterPageState extends State<WaiterPage> {
   TextEditingController tECPassword = TextEditingController();
   TextEditingController tECUsername = TextEditingController();
   TextEditingController tECID = TextEditingController();
-  TextEditingController tECNote = TextEditingController();
+
+  String gNote = "";
 
   var box = Hive.box('database');
 
   bool progress1 = false;
   bool progress2 = false;
 
-  ///* [progress3] note page
-  bool progress3 = false;
 
   List<Food> foods = [];
   List orders = [];
@@ -153,54 +153,7 @@ class _WaiterPageState extends State<WaiterPage> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          widgetBody(context),
-          Visibility(visible: progress3, child: widgetNotePage(context))
-        ],
-      ),
-    );
-  }
-
-  Container widgetNotePage(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      color: Colors.black.withOpacity(0.95),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              CustomTextField(
-                  maxLine: null,
-                  textEditingController: tECNote,
-                  text: "Note",
-                  iconData: Icons.note_add),
-              SizedBox(
-                height: SizeConfig.safeBlockVertical! * 6,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  CustomGradientButton(
-                    context: context,
-                    text: "Close",
-                    color: Colors.black.withOpacity(0.95),
-                    isOutlined: true,
-                    func: () {
-                      FocusScope.of(context).unfocus();
-                      setState(() {
-                        progress3 = false;
-                      });
-                    },
-                  ),
-                ],
-              )
-            ],
-          ),
-        ),
-      ),
+      body: widgetBody(context),
     );
   }
 
@@ -279,11 +232,9 @@ class _WaiterPageState extends State<WaiterPage> {
                 tECID: tECID,
                 foods: foods,
                 price: getTotalAmount(),
-                longPress: () {
+                funcNote: (value) {
                   FocusScope.of(context).unfocus();
-                  setState(() {
-                    progress3 = true;
-                  });
+                  gNote = value;
                 },
                 inkWellOnTap: (index) {
                   countChanger(index);
@@ -343,7 +294,7 @@ class _WaiterPageState extends State<WaiterPage> {
     String? databaseReference = await Funcs.createId(
         context: context, personnelUsername: personnel!.username);
     order = Order(
-        note: tECNote.text.trim(),
+        note: gNote.trim(),
         orderBy: tECUsername.text,
         date: DateTime.now().toIso8601String(),
         id: tECID.text.trim(),
@@ -377,7 +328,7 @@ class _WaiterPageState extends State<WaiterPage> {
             CustomGradientButton(
               context: context,
               text: "YES",
-              func: (){
+              func: () {
                 Funcs().showSnackBar(context, "LONG PRESS!!!!");
               },
               longPress: () {
@@ -404,7 +355,7 @@ class _WaiterPageState extends State<WaiterPage> {
       order = null;
       foods.clear();
       tECID.clear();
-      tECNote.clear();
+      gNote = "";
     });
   }
 
@@ -430,7 +381,7 @@ class _WaiterPageState extends State<WaiterPage> {
 
   Future countChanger(int index) async {
     listForDialog = [];
-    for (var i = 0; i < 51; i++) {
+    for (var i = 0; i < 100; i++) {
       listForDialog.add(i);
     }
 

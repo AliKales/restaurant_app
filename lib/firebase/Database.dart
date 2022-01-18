@@ -93,11 +93,13 @@ class Database {
     }
   }
 
-  static Future<String> updateOrder(
-      {required context,
-      required String databaseReference,
-      required Map<String, dynamic> update,
-      bool isID = false}) async {
+  static Future<String> updateOrder({
+    required context,
+    required String databaseReference,
+    required Map<String, dynamic> update,
+    bool isID = false,
+    bool showMessage = true,
+  }) async {
     try {
       DataSnapshot dataSnapshot = await FirebaseDatabase(
               databaseURL:
@@ -138,7 +140,7 @@ class Database {
           .child(Auth().getUID())
           .child(databaseReference)
           .update(update);
-      Funcs().showSnackBar(context, "Updated!");
+      if (showMessage) Funcs().showSnackBar(context, "Updated!");
       return "true";
     } on FirebaseException {
       Funcs().showSnackBar(context, "ERROR!");
@@ -149,8 +151,10 @@ class Database {
     }
   }
 
-  static Future<Order?> getOrder(
-      {required final context, required final String databaseReference,}) async {
+  static Future<Order?> getOrder({
+    required final context,
+    required final String databaseReference,
+  }) async {
     try {
       DataSnapshot dataSnapshot = await FirebaseDatabase(
               databaseURL:
@@ -215,11 +219,46 @@ class Database {
 
       return returnlist;
     } on FirebaseException catch (e) {
-      print(e);
       Funcs().showSnackBar(context, "ERROR!");
       return null;
     } catch (e) {
-      print(e);
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    }
+  }
+
+  static Future<List<Order>?> getAllOrders({
+    required final context,
+  }) async {
+    List<Order> listToReturn = [];
+    try {
+      DataSnapshot dataSnapshot = await FirebaseDatabase(
+              databaseURL:
+                  "https://restaurant-app-99f29-default-rtdb.europe-west1.firebasedatabase.app")
+          .reference()
+          .child("orders")
+          .child(Auth().getUID())
+          .get();
+      if (!dataSnapshot.exists) {
+        Funcs().showSnackBar(context, "There's not any order!");
+        return null;
+      }
+
+      var a = HashMap.from(dataSnapshot.value);
+      a.forEach((key, value) { 
+        listToReturn.add(Order.fromJson(value));
+      });
+
+      if (listToReturn.isEmpty) {
+        Funcs().showSnackBar(context, "There's not any order!");
+        return null;
+      }
+      Funcs().showSnackBar(context, "Done!");
+      return listToReturn;
+    } on FirebaseException catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    } catch (e) {
       Funcs().showSnackBar(context, "ERROR!");
       return null;
     }

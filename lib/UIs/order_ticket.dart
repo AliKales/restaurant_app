@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import 'package:restaurant_app/UIs/note_page_widget.dart';
 import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/models/food.dart';
 
@@ -15,33 +16,33 @@ class OrderTicket extends StatefulWidget {
       {Key? key,
       required this.price,
       this.isTextFieldActive = true,
-      this.id = "",
       required this.foods,
       this.progress2,
       this.noTouch = false,
       this.absoring = false,
+      this.isNoSlide = false,
       this.tECID,
       this.add,
       required this.inkWellOnTap,
       this.funcDelete,
       this.funcOrder,
       this.buttonText = "ADD",
-      this.longPress})
+      this.funcNote})
       : super(key: key);
 
   final double price;
   final bool isTextFieldActive;
-  final String id;
   final List<Food> foods;
   final bool? progress2;
   final bool noTouch;
   final bool absoring;
+  final bool isNoSlide;
   final TextEditingController? tECID;
   final Function()? add;
   final Function(int index)? inkWellOnTap;
   final Function()? funcDelete;
   final Function()? funcOrder;
-  final Function()? longPress;
+  final Function(String)? funcNote;
 
   ///* [buttonText] is for either 'ADD' or 'UPDATE' the ticket
   final String buttonText;
@@ -53,15 +54,35 @@ class OrderTicket extends StatefulWidget {
 }
 
 class _OrderTicketState extends State<OrderTicket> {
+  bool isNoteOpen = false;
+  String note = "";
   @override
   Widget build(BuildContext context) {
+    if (isNoteOpen) {
+      return Expanded(
+        child: NotePageWidget(
+          note: note,
+          closeButton: (value) {
+            widget.funcNote?.call(value) ?? () {};
+            note = value;
+            setState(() {
+              isNoteOpen = false;
+            });
+          },
+        ),
+      );
+    }
+    return body();
+  }
+
+  Expanded body() {
     return Expanded(
       child: AbsorbPointer(
         absorbing: widget.absoring,
         child: Slidable(
           key: const ValueKey(0),
           // The start action pane is the one at the left or the top side.
-          startActionPane: widget.id != ""
+          startActionPane: widget.isNoSlide
               ? null
               : ActionPane(
                   // A motion is a widget used to control how the pane animates.
@@ -79,19 +100,21 @@ class _OrderTicketState extends State<OrderTicket> {
                 ),
 
           // The end action pane is the one at the right or the bottom side.
-          endActionPane: ActionPane(
-            motion: const ScrollMotion(),
-            children: [
-              SlidableAction(
-                // An action can be bigger than the others.
-                onPressed: (context) => widget.funcOrder?.call() ?? {},
-                backgroundColor: Color(0xFF7BC043),
-                foregroundColor: Colors.white,
-                icon: Icons.archive,
-                label: 'Order',
-              ),
-            ],
-          ),
+          endActionPane: widget.isNoSlide
+              ? null
+              : ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    SlidableAction(
+                      // An action can be bigger than the others.
+                      onPressed: (context) => widget.funcOrder?.call() ?? {},
+                      backgroundColor: Color(0xFF7BC043),
+                      foregroundColor: Colors.white,
+                      icon: Icons.archive,
+                      label: 'Order',
+                    ),
+                  ],
+                ),
           child: ChildOrderTicket(
             noTouch: widget.noTouch,
             progress2: widget.progress2,
@@ -101,8 +124,11 @@ class _OrderTicketState extends State<OrderTicket> {
             add: widget.add,
             tECID: widget.tECID,
             buttonText: widget.buttonText,
-            longPress: widget.longPress,
-            id: widget.id,
+            longPress: () {
+              setState(() {
+                isNoteOpen = true;
+              });
+            },
             isTextFieldActive: widget.isTextFieldActive,
           ),
         ),

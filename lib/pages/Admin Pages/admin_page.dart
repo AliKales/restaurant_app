@@ -13,10 +13,12 @@ import 'package:restaurant_app/firebase/Auth.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
 import 'package:restaurant_app/models/restaurant.dart';
+import 'package:restaurant_app/pages/Admin%20Pages/all_orders_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/food_categories_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/food_menu_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/new_personnel_page.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/statisticks_page.dart';
+import 'package:restaurant_app/pages/Cashier%20Pages/pre_orders_page.dart';
 import 'package:restaurant_app/pages/payment_page.dart';
 import 'package:restaurant_app/pages/personal_manager_page.dart';
 import 'package:restaurant_app/size.dart';
@@ -47,7 +49,7 @@ class _AdminPageState extends State<AdminPage> {
 
   bool paymentForMoreDays = false;
 
-  bool isPaid=false;
+  bool isPaid = false;
 
   int drawerTappedIndex = 0;
 
@@ -89,12 +91,12 @@ class _AdminPageState extends State<AdminPage> {
       if (purchaseDetails.status == PurchaseStatus.canceled) {
         setState(() {
           progress2 = false;
-          progress3=false;
+          progress3 = false;
         });
       } else if (purchaseDetails.status == PurchaseStatus.error) {
         setState(() {
           progress2 = false;
-          progress3=false;
+          progress3 = false;
         });
         Funcs().showSnackBar(context, "ERROR");
       } else if (purchaseDetails.status == PurchaseStatus.purchased) {
@@ -118,7 +120,7 @@ class _AdminPageState extends State<AdminPage> {
                   Funcs().showSnackBar(
                       context, "Your payment has been successfully received.");
                   setState(() {
-                    isPaid=true;
+                    isPaid = true;
                     progress3 = false;
                     paymentForMoreDays = false;
                   });
@@ -156,7 +158,7 @@ class _AdminPageState extends State<AdminPage> {
               } else {
                 setState(() {
                   progress2 = false;
-                  progress3=false;
+                  progress3 = false;
                 });
                 Funcs().showSnackBar(context, "Error, try again later.");
                 showErrorMessage();
@@ -171,7 +173,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future futureBuilder() async {
-    isPaid=widget.isPaid;
+    isPaid = widget.isPaid;
     //if no restaurant saved before then it returns false and it checks from database
     await Firestore().getRestaurant(context).then((value) {
       if (value == null) {
@@ -194,6 +196,18 @@ class _AdminPageState extends State<AdminPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: const AppbarForPersons(text: "Admin"),
+      floatingActionButton: drawerTappedIndex != 4
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                Funcs().navigatorPush(context, const PreOrdersPage());
+              },
+              backgroundColor: color2,
+              child: const Icon(
+                Icons.history,
+                color: color4,
+              ),
+            ),
       onDrawerChanged: (boolen) {
         final FocusScopeNode currentScope = FocusScope.of(context);
         if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
@@ -205,7 +219,7 @@ class _AdminPageState extends State<AdminPage> {
           : Container(
               padding: const EdgeInsets.all(10),
               width: MediaQuery.of(context).size.width / 1.2,
-              height: MediaQuery.of(context).size.height / 2,
+              height: MediaQuery.of(context).size.height,
               decoration: const BoxDecoration(
                   color: color1,
                   borderRadius:
@@ -220,7 +234,9 @@ class _AdminPageState extends State<AdminPage> {
                   widgetSperaterForDrawer(),
                   widgetRowOnDrawer(2, "FOOD CATEGORIES"),
                   widgetSperaterForDrawer(),
-                  widgetRowOnDrawer(3, "STATISTICKS")
+                  widgetRowOnDrawer(3, "STATISTICKS"),
+                  widgetSperaterForDrawer(),
+                  widgetRowOnDrawer(4, "ALL ORDERS")
                 ],
               ),
             ),
@@ -293,9 +309,7 @@ class _AdminPageState extends State<AdminPage> {
             .headline5!
             .copyWith(color: Colors.red, fontWeight: FontWeight.bold),
       ));
-    } else if (builder == Builders.noData ||
-        !isPaid ||
-        paymentForMoreDays) {
+    } else if (builder == Builders.noData || !isPaid || paymentForMoreDays) {
       return widgetMustBuy(context);
     } else {
       return buildPageView();
@@ -322,7 +336,8 @@ class _AdminPageState extends State<AdminPage> {
         ),
         FoodMenuPage(restaurant: restaurant!),
         FoodCategoriesPage(restaurant: restaurant!),
-        StatisticksPage(restaurant: restaurant!)
+        StatisticksPage(restaurant: restaurant!),
+        AllOrdersPage(restaurant: restaurant!),
       ],
     );
   }
@@ -371,8 +386,8 @@ class _AdminPageState extends State<AdminPage> {
                   text: "PAY",
                   loading: progress2,
                   func: () async {
-                    if (restaurant!=null) {
-                      paymentForMoreDays=true;
+                    if (restaurant != null) {
+                      paymentForMoreDays = true;
                     }
                     pay();
                   },
@@ -411,7 +426,7 @@ class _AdminPageState extends State<AdminPage> {
           pay2(value);
         } else {
           setState(() {
-            progress2=false;
+            progress2 = false;
             progress3 = false;
           });
         }
@@ -437,7 +452,7 @@ class _AdminPageState extends State<AdminPage> {
       }
       List<ProductDetails> products = response.productDetails;
 
-      final ProductDetails productDetails = restaurant==null
+      final ProductDetails productDetails = restaurant == null
           ? products[0]
           : products[1]; // Saved earlier from queryProductDetails().
 

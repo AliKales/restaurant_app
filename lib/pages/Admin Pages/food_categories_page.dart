@@ -68,6 +68,42 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
                 SizedBox(
                   height: SizeConfig().setHight(2),
                 ),
+                CustomGradientButton(
+                  context: context,
+                  text: "Upload",
+                  loading: progress3,
+                  func: () {
+                    SimpleUIs.showCustomDialog(
+                        context: context,
+                        title: "WARNING!",
+                        content: Text(
+                          "Please be sure that you are all done with your changes to update. We would like you to update all of your changes at the same time.",
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1!
+                              .copyWith(color: color4),
+                        ),
+                        actions: [
+                          CustomGradientButton(
+                            context: context,
+                            color: color1,
+                            isOutlined: true,
+                            text: "Cancel",
+                            func: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          CustomGradientButton(
+                            context: context,
+                            text: "Upload",
+                            func: () => uploadChanges(),
+                          )
+                        ]);
+                  },
+                ),
+                SizedBox(
+                  height: SizeConfig().setHight(1),
+                ),
                 CustomTextField(
                   text: "Category Name*",
                   textEditingController: tECName,
@@ -100,11 +136,6 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
                                 Funcs().showSnackBar(context, "Not same name");
                               } else {
                                 editCategoryName(pickedEdit);
-                                tECName.clear();
-                                pickedEdit = -1;
-                                setState(() {
-                                  progress5 = false;
-                                });
                               }
                             },
                           ),
@@ -143,42 +174,6 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
                       ),
                 SizedBox(
                   height: SizeConfig().setHight(3),
-                ),
-                CustomGradientButton(
-                  context: context,
-                  text: "Upload",
-                  loading: progress3,
-                  func: () {
-                    SimpleUIs.showCustomDialog(
-                        context: context,
-                        title: "WARNING!",
-                        content: Text(
-                          "Please be sure that you are all done with your changes to update. We would like you to update all of your changes at the same time.",
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle1!
-                              .copyWith(color: color4),
-                        ),
-                        actions: [
-                          CustomGradientButton(
-                            context: context,
-                            color: color1,
-                            isOutlined: true,
-                            text: "Cancel",
-                            func: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          CustomGradientButton(
-                            context: context,
-                            text: "Upload",
-                            func: () => uploadChanges(),
-                          )
-                        ]);
-                  },
-                ),
-                SizedBox(
-                  height: SizeConfig().setHight(6),
                 ),
               ],
             ),
@@ -346,18 +341,23 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
       return;
     }
 
+    print(tECName.text.trim().toLowerCase().replaceAll(" ", ""));
     for (String value in categories) {
       if (value.toLowerCase().trim().replaceAll(" ", "") ==
           tECName.text.trim().toLowerCase().replaceAll(" ", "")) {
         Funcs().showSnackBar(context, "This category already exists!");
-      } else {
-        categories[index] = tECName.text.trim();
-        progress4 = true;
-        Funcs().showSnackBar(context, "Done!");
+        return;
       }
     }
 
+    categories[index] = tECName.text.trim();
+    progress4 = true;
+    Funcs().showSnackBar(context, "Done!");
     tECName.clear();
+    pickedEdit = -1;
+    setState(() {
+      progress5 = false;
+    });
   }
 
   void checkCategoryName() {
@@ -370,7 +370,6 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage>
         if (value.toLowerCase().trim().replaceAll(" ", "") ==
             tECName.text.trim().toLowerCase().replaceAll(" ", "")) {
           Funcs().showSnackBar(context, "This category already exists!");
-          tECName.clear();
           return;
         }
       }

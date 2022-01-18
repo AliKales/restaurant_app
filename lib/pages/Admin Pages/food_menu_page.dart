@@ -71,7 +71,43 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
                   ),
                 ),
                 SizedBox(
-                  height: SizeConfig().setHight(2),
+                  height: SizeConfig().setHight(1),
+                ),
+                CustomGradientButton(
+                  context: context,
+                  text: "Upload",
+                  loading: progress3,
+                  func: () {
+                    SimpleUIs.showCustomDialog(
+                        context: context,
+                        title: "WARNING!",
+                        content: Text(
+                          "Please be sure that you are all done with your changes to update. We would like you to update all of your changes at the same time.",
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1!
+                              .copyWith(color: color4),
+                        ),
+                        actions: [
+                          CustomGradientButton(
+                            context: context,
+                            color: color1,
+                            isOutlined: true,
+                            text: "Cancel",
+                            func: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          CustomGradientButton(
+                            context: context,
+                            text: "Upload",
+                            func: () => uploadChanges(),
+                          )
+                        ]);
+                  },
+                ),
+                SizedBox(
+                  height: SizeConfig().setHight(1),
                 ),
                 CustomTextField(
                   text: "Name*",
@@ -118,7 +154,7 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
                             isOutlined: true,
                             color: color1,
                             func: () {
-                              tECName.clear();
+                              clearTECS();
                               pickedEdit = -1;
                               setState(() {
                                 progress5 = false;
@@ -130,11 +166,6 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
                             text: "Edit",
                             func: () async {
                               await editFood(pickedEdit);
-                              tECName.clear();
-                              pickedEdit = -1;
-                              setState(() {
-                                progress5 = false;
-                              });
                             },
                           ),
                         ],
@@ -163,49 +194,13 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
                         ),
                       )
                     : ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: foods.length,
                         itemBuilder: (_, index) {
                           return widgetShowData(index);
                         },
                       ),
-                CustomGradientButton(
-                  context: context,
-                  text: "Upload",
-                  loading: progress3,
-                  func: () {
-                    SimpleUIs.showCustomDialog(
-                        context: context,
-                        title: "WARNING!",
-                        content: Text(
-                          "Please be sure that you are all done with your changes to update. We would like you to update all of your changes at the same time.",
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle1!
-                              .copyWith(color: color4),
-                        ),
-                        actions: [
-                          CustomGradientButton(
-                            context: context,
-                            color: color1,
-                            isOutlined: true,
-                            text: "Cancel",
-                            func: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          CustomGradientButton(
-                            context: context,
-                            text: "Upload",
-                            func: () => uploadChanges(),
-                          )
-                        ]);
-                  },
-                ),
-                SizedBox(
-                  height: SizeConfig().setHight(3),
-                ),
               ],
             ),
           ),
@@ -354,14 +349,21 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
 
   Future<void> editFood(int index) async {
     await checkText(true).then((value) {
-      foods[index].name = tECName.text.trim();
-      foods[index].searchName =
-          tECName.text.toLowerCase().trim().replaceAll(" ", "");
-      foods[index].info = tECInfo.text.trim();
-      foods[index].price = tECPrice.text.trim();
-      foods[index].category = tECCategory.text;
-      progress4 = true;
-      setState(() {});
+      if (value != false) {
+        foods[index].name = tECName.text.trim();
+        foods[index].searchName =
+            tECName.text.toLowerCase().trim().replaceAll(" ", "");
+        foods[index].info = tECInfo.text.trim();
+        foods[index].price = tECPrice.text.trim();
+        foods[index].category = tECCategory.text;
+        progress4 = true;
+        clearTECS();
+        pickedEdit = -1;
+        setState(() {
+          progress5 = false;
+        });
+        setState(() {});
+      }
     });
   }
 
@@ -399,7 +401,7 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
     });
   }
 
-  Future<bool?> checkText(bool isForEdit) async {
+  Future<bool> checkText(bool isForEdit) async {
     FocusScope.of(context).unfocus();
     bool isAdd = true;
     if (tECName.text.isEmpty ||
@@ -408,12 +410,14 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
       Funcs().showSnackBar(
           context, "'Name' & 'Price' & 'Category' can not be empty!");
       isAdd = false;
+      return false;
     } else if (tECPrice.text.split(".").length != 1) {
       if (tECPrice.text.split(".").length > 2 ||
           tECPrice.text.split(".")[1].length > 2) {
         Funcs().showSnackBar(
             context, "Wrong 'Price' formatting! Example= (\$10.28)");
         isAdd = false;
+        return false;
       }
     }
 
@@ -444,15 +448,17 @@ class _FoodMenuPageState extends State<FoodMenuPage> {
           Funcs().showSnackBar(context, "Added");
           progress4 = true;
           clearTECS();
+          return true;
         }
-      } else {
+      } else if (pickedEdit == -1 || tECName.text != foods[pickedEdit].name) {
         Funcs()
             .showSnackBar(context, "There is already food with same 'NAME'!");
+        return false;
       }
     }
     setState(() {});
+    return true;
   }
-
 
   void clearTECS() {
     tECName.clear();

@@ -17,7 +17,7 @@ class PreOrdersPage extends StatefulWidget {
 }
 
 class _PreOrdersPageState extends State<PreOrdersPage> {
-  List preOrders = Lists().box.get("paymentsWithError") ?? [] as List<Order>;
+  List preOrders = Lists().box.get("paymentsWithError") ?? [];
 
   @override
   Widget build(BuildContext context) {

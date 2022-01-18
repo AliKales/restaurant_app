@@ -112,7 +112,7 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
                               text: "SEARCH",
                               func: () {
                                 Navigator.pop(context);
-                                //searchById(tECSearchID.text);
+                                searchById(tECSearchID.text);
                               },
                             ),
                           ]);
@@ -185,10 +185,16 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
                         OrderTicket(
                           tECID: tECID,
                           isTextFieldActive: false,
+                          isNoSlide: true,
                           absoring: !isUpdating,
                           price: selectedOrder?.price ?? 0,
                           foods: getList(),
-                          inkWellOnTap: (value) {},
+                          funcNote: (value){
+                            selectedOrder!.note=value;
+                          },
+                          inkWellOnTap: (value) {
+                            countChanger(value);
+                          },
                           add: () {
                             FocusScope.of(context).unfocus();
                             addFood();
@@ -211,7 +217,7 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
                             child: IconButton(
                               onPressed: () {
                                 setState(() {
-                                  ordersToUpdateID=null;
+                                  ordersToUpdateID = null;
                                 });
                               },
                               icon: const Icon(
@@ -393,14 +399,34 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
     );
   }
 
+  //FUNCTİONs-----------------------------
   Future countChanger(int index) async {
+    List<Food> tempOutput = getList();
     List listForDialog = [];
-    for (var i = 0; i < 51; i++) {
+    for (var i = 0; i < 100; i++) {
       listForDialog.add(i);
     }
-  }
+    var value = await SimpleUIs()
+        .showGeneralDialogFunc(context, listForDialog, tempOutput.length);
+    if (value == 0) {
+      tempOutput[index].count = 1;
+      setState(() {
+        tempOutput.removeWhere((element) => element == tempOutput[index]);
+      });
+    } else {
+      setState(() {
+        tempOutput[index].count = value;
+      });
+    }
 
-  //FUNCTİONs-----------------------------
+    selectedOrder!.foods = List.generate(tempOutput.length, (index) => tempOutput[index].toMap());
+    double amount = 0;
+    for (var food in getList()) {
+      amount += double.parse(food.price) * food.count;
+    }
+    selectedOrder!.price = amount;
+    setState(() {});
+  }
 
   Future stopUpdateFun() async {
     SimpleUIs().showProgressIndicator(context);
@@ -440,6 +466,8 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
         }
         SimpleUIs().showProgressIndicator(context);
         if (Order.fromJson(mutableData.value).status == OrderStatus.cooking) {
+          Funcs()
+              .showSnackBar(context, "This order is already getting ready!!!");
           Database.updateOrder(
                   context: context,
                   databaseReference: selectedOrder!.databaseReference!,
@@ -449,8 +477,6 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
               isUpdating = false;
             });
             Navigator.pop(context);
-            Funcs().showSnackBar(
-                context, "This order is already getting ready!!!");
           });
         } else if (Order.fromJson(mutableData.value).status !=
             OrderStatus.ready) {
@@ -630,19 +656,18 @@ class _PreviousOrdersPageState extends State<PreviousOrdersPage> {
     Navigator.pop(context);
   }
 
-  // Future searchById(String id) async {
-  //   SimpleUIs().showProgressIndicator(context);
-  //   await Database.getOrders(context: context, idSearch: id).then((value) {
-  //     if (value != null) {
-  //       value.removeWhere((element) => element.status != OrderStatus.waiting);
-  //       setState(() {
-  //         ordersBySearch = value;
-  //       });
-  //     }
-  //   });
+  Future searchById(String id) async {
+    SimpleUIs().showProgressIndicator(context);
+    await Database.getOrders(context: context, idSearch: id).then((value) {
+      if (value != null) {
+        setState(() {
+          ordersBySearch = value;
+        });
+      }
+    });
 
-  //   Navigator.pop(context);
-  // }
+    Navigator.pop(context);
+  }
 
   // Future deleteOrder(int index) async {
   //   SimpleUIs().showProgressIndicator(context);

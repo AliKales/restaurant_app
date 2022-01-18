@@ -24,7 +24,8 @@ class WidgetOrderTicket extends StatefulWidget {
       this.isBorder = false,
       this.doubleTap,
       this.isChef = true,
-      this.delete})
+      this.delete,
+      this.isNoSlidable = false})
       : super(key: key);
   final Order order;
   final Function()? funcDone;
@@ -35,6 +36,7 @@ class WidgetOrderTicket extends StatefulWidget {
   final bool isCashier;
   final bool isBorder;
   final bool isChef;
+  final bool isNoSlidable;
 
   @override
   State createState() => WidgetOrderTicketState();
@@ -80,6 +82,8 @@ class WidgetOrderTicketState extends State<WidgetOrderTicket> {
                   ],
                 ),
           child: widgetChild(context));
+    } else if (widget.isNoSlidable) {
+      return widgetChild(context);
     } else {
       return widgetSlidableNotCashier(context);
     }

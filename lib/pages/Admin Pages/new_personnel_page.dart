@@ -6,6 +6,7 @@ import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/funcs.dart';
+import 'package:restaurant_app/lists.dart';
 import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 import 'package:restaurant_app/pages/Admin%20Pages/add_new_personal.dart';
@@ -108,7 +109,8 @@ class _NewPersonnelPageState extends State<NewPersonnelPage>
                                 if (daysLeft! <= 30) {
                                   widget.goToPayment.call();
                                 } else {
-                                  Funcs().showSnackBar(context, "For now you can purchase maximum 60 days!");
+                                  Funcs().showSnackBar(context,
+                                      "For now you can purchase maximum 60 days!");
                                 }
                               },
                               child: Text(
@@ -263,29 +265,23 @@ class _NewPersonnelPageState extends State<NewPersonnelPage>
             Icons.sort_rounded,
             color: color4,
           ),
-          itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-            PopupMenuItem(
-              child: const Text(
-                'Manager',
-                style: TextStyle(color: color4, fontWeight: FontWeight.bold),
+          itemBuilder: (BuildContext context) => List.generate(
+            Lists().roles.length-1,
+            (index) {
+              index++;
+              return PopupMenuItem(
+              child: Text(
+                Lists().roles[index],
+                style: const TextStyle(color: color4, fontWeight: FontWeight.bold),
               ),
               onTap: () {
-                personnels = Funcs().sortList("Manager", "role", personnels);
+                personnels =
+                    Funcs().sortList(Lists().roles[index], "role", personnels);
                 setState(() {});
               },
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              child: const Text(
-                'Staff',
-                style: TextStyle(color: color4, fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                personnels = Funcs().sortList("Staff", "role", personnels);
-                setState(() {});
-              },
-            ),
-          ],
+            );
+            },
+          ),
         ),
       ),
     );

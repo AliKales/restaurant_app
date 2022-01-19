@@ -231,112 +231,140 @@ class ChildOrderTicket extends StatelessWidget {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: ListView.builder(
-                        shrinkWrap: shrinkWrap,
-                        itemCount: foods.length,
-                        itemBuilder: (_, index) {
-                          return InkWell(
-                            onTap: () => inkWellOnTap!(index),
-                            onLongPress: () {
-                              if (foods[index].info!.isEmpty) {
-                                Funcs().showSnackBar(context, "No info!");
-                              } else {
-                                SimpleUIs.showCustomDialog(
-                                    context: context,
-                                    actions: [
-                                      CustomGradientButton(
-                                        context: context,
-                                        text: "OK",
-                                        func: () {
-                                          Navigator.pop(context);
-                                        },
-                                      )
-                                    ],
-                                    barriedDismissible: true,
-                                    title: foods[index].name,
-                                    content: Text(
-                                      foods[index].info!,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subtitle1!
-                                          .copyWith(color: color4),
-                                    ));
-                              }
-                            },
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  height: SizeConfig().setHight(1),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      foods[index].count.toString() + " - ",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subtitle1!
-                                          .copyWith(
-                                              color: color1,
-                                              fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      foods[index].name,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subtitle1!
-                                          .copyWith(
-                                              color: color1,
-                                              fontWeight: FontWeight.bold),
-                                    ),
-                                    const Expanded(child: SizedBox()),
-                                    Text(
-                                      OrderTicket.formatCurrency.format(
-                                          double.parse(foods[index].price) *
-                                              foods[index].count),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subtitle1!
-                                          .copyWith(
-                                              color: color1,
-                                              fontWeight: FontWeight.bold),
-                                    )
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: SizeConfig().setHight(1),
-                                ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 0),
-                                  child: Divider(
-                                    color: Colors.grey[850],
-                                    thickness: 1,
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: index == foods.length - 1,
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Text(
-                                      "Total= " +
-                                          NumberFormat.simpleCurrency()
-                                              .format(price),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subtitle1!
-                                          .copyWith(
-                                              color: color1,
-                                              fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          );
+                      child:
+                          NotificationListener<OverscrollIndicatorNotification>(
+                        onNotification:
+                            (OverscrollIndicatorNotification overscroll) {
+                          overscroll.disallowIndicator();
+                          return true;
                         },
+                        child: Scrollbar(
+                          isAlwaysShown: true,
+                          child: ListView.builder(
+                            shrinkWrap: shrinkWrap,
+                            itemCount: foods.length,
+                            itemBuilder: (_, index) {
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () => inkWellOnTap!(index),
+                                      onLongPress: () {
+                                        if (foods[index].info!.isEmpty) {
+                                          Funcs().showSnackBar(
+                                              context, "No info!");
+                                        } else {
+                                          SimpleUIs.showCustomDialog(
+                                              context: context,
+                                              actions: [
+                                                CustomGradientButton(
+                                                  context: context,
+                                                  text: "OK",
+                                                  func: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                )
+                                              ],
+                                              barriedDismissible: true,
+                                              title: foods[index].name,
+                                              content: Text(
+                                                foods[index].info!,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .subtitle1!
+                                                    .copyWith(color: color4),
+                                              ));
+                                        }
+                                      },
+                                      child: Column(
+                                        children: [
+                                          SizedBox(
+                                            height: SizeConfig().setHight(1),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                foods[index].count.toString() +
+                                                    " - ",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .subtitle1!
+                                                    .copyWith(
+                                                        color: color1,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
+                                              Text(
+                                                foods[index].name,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .subtitle1!
+                                                    .copyWith(
+                                                        color: color1,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
+                                              const Expanded(child: SizedBox()),
+                                              Text(
+                                                OrderTicket.formatCurrency
+                                                    .format(double.parse(
+                                                            foods[index]
+                                                                .price) *
+                                                        foods[index].count),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .subtitle1!
+                                                    .copyWith(
+                                                        color: color1,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              )
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: SizeConfig().setHight(1),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 0),
+                                            child: Divider(
+                                              color: Colors.grey[850],
+                                              thickness: 1,
+                                            ),
+                                          ),
+                                          Visibility(
+                                            visible: index == foods.length - 1,
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(
+                                                "Total= " +
+                                                    NumberFormat
+                                                            .simpleCurrency()
+                                                        .format(price),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .subtitle1!
+                                                    .copyWith(
+                                                        color: color1,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SimpleUIs.emptyWidget(width: 1.5)
+                                ],
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  )
+                  ),
+                  SimpleUIs.emptyWidget(height: 3)
                 ],
               ),
             ),

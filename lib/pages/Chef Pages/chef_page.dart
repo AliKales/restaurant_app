@@ -167,7 +167,11 @@ class _ChefPageState extends State<ChefPage> {
     return WidgetOrderTicket(
       order: value,
       doubleTap: () {
-        doubleTap(value);
+        if (value.status == OrderStatus.updating) {
+          Funcs().showSnackBar(context, "Order is updating!");
+        } else {
+          doubleTap(value);
+        }
       },
       longPress: (note) {
         SimpleUIs.showCustomDialog(

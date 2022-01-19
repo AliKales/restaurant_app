@@ -252,6 +252,7 @@ class _WaiterPageState extends State<WaiterPage> {
                   funcDelete();
                 },
               ),
+
             ],
           ),
         ),

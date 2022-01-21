@@ -176,8 +176,11 @@ class _AdminPageState extends State<AdminPage> {
     isPaid = widget.isPaid;
     //if no restaurant saved before then it returns false and it checks from database
     await Firestore().getRestaurant(context).then((value) {
+      print(value);
       if (value == null) {
-        Funcs().navigatorPushReplacement(context, const PersonelManagerPage());
+        setState(() {
+          builder = Builders.hasError;
+        });
       } else if (value.password == "ozel-admin-code:31") {
         setState(() {
           builder = Builders.noData;
@@ -298,6 +301,7 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   body() {
+    print(builder);
     if (builder == Builders.loading) {
       return SimpleUIs().progressIndicator();
     } else if (builder == Builders.hasError) {

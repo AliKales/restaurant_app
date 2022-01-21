@@ -54,7 +54,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
     if (!FirebaseAuth.instance.currentUser!.emailVerified) {
       FirebaseAuth.instance.currentUser!.sendEmailVerification();
     }
-    WidgetsBinding.instance!.addPostFrameCallback((_) => getRestaurantInfos());
+    WidgetsBinding.instance!
+        .addPostFrameCallback((_) => getRestaurantInfosAndCheckPolicies());
     super.initState();
   }
 
@@ -227,7 +228,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
           context: context,
           text: "TRY AGAIN",
           func: () {
-            getRestaurantInfos();
+            getRestaurantInfosAndCheckPolicies();
           },
         ),
       );
@@ -248,7 +249,7 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
           SimpleUIs().progressIndicator(),
         ],
       );
-    } else if (FirebaseAuth.instance.currentUser!.emailVerified) {
+    } else {
       return Center(
         child: SlideTransition(
           position: Tween<Offset>(
@@ -268,8 +269,9 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                     mainAxisSpacing: SizeConfig().setHight(5),
                     crossAxisSpacing: SizeConfig().setWidth(5)),
                 itemBuilder: (context, index) {
-                  return kIsWeb && (persons[index]['text'] == "Admin" ||
-                          persons[index]['text'] == "Waiter")
+                  return kIsWeb &&
+                          (persons[index]['text'] == "Admin" ||
+                              persons[index]['text'] == "Waiter")
                       ? const SizedBox.shrink()
                       : widgetContainerForPerson(persons[index]);
                 },
@@ -278,45 +280,46 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
           ),
         ),
       );
-    } else {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Please verify your e-mail first!\nWe sent you an e-mail to verify your account.\nDon't forget the check your Junk E-Mails.",
-                style: Theme.of(context)
-                    .textTheme
-                    .headline5!
-                    .copyWith(color: color4, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.left,
-              ),
-            ),
-            SizedBox(height: SizeConfig().setHight(3)),
-            CustomGradientButton(
-              context: context,
-              loading: progress1,
-              text: "I did",
-              func: () async {
-                setState(() {
-                  progress1 = true;
-                });
-                await FirebaseAuth.instance.currentUser!.reload();
-                if (!FirebaseAuth.instance.currentUser!.emailVerified) {
-                  Funcs().showSnackBar(
-                      context, "Please verify your e-mail first!");
-                }
-                setState(() {
-                  progress1 = false;
-                });
-              },
-            )
-          ],
-        ),
-      );
     }
+    //else {
+    //   return Center(
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         Padding(
+    //           padding: const EdgeInsets.all(8.0),
+    //           child: Text(
+    //             "Please verify your e-mail first!\nWe sent you an e-mail to verify your account.\nDon't forget the check your Junk E-Mails.",
+    //             style: Theme.of(context)
+    //                 .textTheme
+    //                 .headline5!
+    //                 .copyWith(color: color4, fontWeight: FontWeight.bold),
+    //             textAlign: TextAlign.left,
+    //           ),
+    //         ),
+    //         SizedBox(height: SizeConfig().setHight(3)),
+    //         CustomGradientButton(
+    //           context: context,
+    //           loading: progress1,
+    //           text: "I did",
+    //           func: () async {
+    //             setState(() {
+    //               progress1 = true;
+    //             });
+    //             await FirebaseAuth.instance.currentUser!.reload();
+    //             if (!FirebaseAuth.instance.currentUser!.emailVerified) {
+    //               Funcs().showSnackBar(
+    //                   context, "Please verify your e-mail first!");
+    //             }
+    //             setState(() {
+    //               progress1 = false;
+    //             });
+    //           },
+    //         )
+    //       ],
+    //     ),
+    //   );
+    // }
   }
 
   dynamic widgetContainerForPerson(Map map) {
@@ -382,6 +385,24 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   }
 
   //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
+  Future getRestaurantInfosAndCheckPolicies() async {
+    //CheckPolicies
+    Map? policies = box.get("policies");
+    Map? result = await Firestore().getPolicies(context);
+    if (result == null) {
+      setState(() {
+        progress2 = true;
+      });
+      Funcs().showSnackBar(context, "ERROR");
+      return;
+    } else if (policies == null || policies['update'] != result['update']) {
+      //eğer buraya düşerse başka bi widget yap orda kabul edip etmesin
+      //birde ödemede no refunds ekle
+      return;
+    }
+    getRestaurantInfos();
+  }
+
   Future getRestaurantInfos() async {
     if (!kIsWeb) {
       bool? response = await Firestore().checkVersion(context);

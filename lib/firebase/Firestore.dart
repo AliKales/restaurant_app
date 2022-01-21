@@ -8,17 +8,17 @@ import 'package:restaurant_app/models/personnel.dart';
 import 'package:restaurant_app/models/restaurant.dart';
 
 class Firestore {
+  final box = Hive.box("database");
   final int version = 1;
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  DocumentReference collectionToPersonnels = FirebaseFirestore.instance
-      .collection("restaurants")
-      .doc(Auth().getEMail());
-
   Future<Restaurant?> getRestaurant(context) async {
     try {
-      var value = await collectionToPersonnels.get();
+      var value = await FirebaseFirestore.instance
+          .collection("restaurants")
+          .doc(Auth().getEMail())
+          .get();
       if (!value.exists) {
         return Restaurant(
             username: "username",
@@ -38,13 +38,47 @@ class Firestore {
     }
   }
 
+  Future<Map?> getPolicies(context) async {
+    Map? map = box.get("policies");
+    try {
+      if (map == null) {
+        DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+            .collection("policy")
+            .doc("policies")
+            .get();
+
+        box.put("policies", documentSnapshot.data() as Map);
+
+        return documentSnapshot.data() as Map;
+      } else {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection("policy")
+            .where("update", isNotEqualTo: map['update'])
+            .limit(1)
+            .get();
+        if (querySnapshot.docs.isEmpty) {
+          return map;
+        }
+        box.put("policies", querySnapshot.docs[0].data() as Map);
+        return querySnapshot.docs[0].data() as Map;
+      }
+    } on FirebaseException catch (e) {
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    } catch (e) {
+      print(e);
+      Funcs().showSnackBar(context, "ERROR!");
+      return null;
+    }
+  }
+
   Future<bool?> checkVersion(context) async {
     try {
       DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
           .collection("update")
           .doc("update")
           .get();
-      if(!documentSnapshot.exists){
+      if (!documentSnapshot.exists) {
         return null;
       }
       Map update = documentSnapshot.data() as Map;

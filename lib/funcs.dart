@@ -206,6 +206,8 @@ class Funcs {
     id = id.replaceAll(":", "");
     id = id.replaceAll(".", "");
     id = id.substring(0, id.length - 6);
+    id = id.replaceAll("-", "");
+    id = id.replaceAll(" ", "");
     if (personnelUsername != null) {
       id = "$id$personnelUsername";
     }

@@ -34,11 +34,15 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   TextEditingController tECPasswordToExit = TextEditingController();
 
   Restaurant? restaurant;
+  Map? policiesFromDB;
 
   bool progress1 = false;
   bool progress2 = false;
+  bool progress3 = false;
 
   bool permission1 = false;
+
+  bool isPolicy = false;
 
   ///* [permission2] is for version check
   bool? permission2;
@@ -192,6 +196,73 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   ];
 
   Widget body() {
+    if (isPolicy) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Before you continue to use, you have to agree to "Privacy Policy" and "Terms and Conditions"',
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .headline5!
+                .copyWith(color: color4, fontWeight: FontWeight.bold),
+          ),
+          SimpleUIs().widgetWithProgress(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () async {
+                    setState(() {
+                      progress3 = true;
+                    });
+                    bool? result =
+                        await Funcs().getPolicies("privacy", context);
+                    if (result != null) {}
+                    setState(() {
+                      progress3 = false;
+                    });
+                  },
+                  child: const Text(
+                    "Privacy Policy",
+                    style: TextStyle(color: color2),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    setState(() {
+                      progress3 = true;
+                    });
+                    bool? result = await Funcs().getPolicies("terms", context);
+                    setState(() {
+                      progress3 = false;
+                    });
+                  },
+                  child: const Text(
+                    "Terms and Conditions",
+                    style: TextStyle(color: color2),
+                  ),
+                ),
+              ],
+            ),
+            progress3,
+          ),
+          CustomGradientButton(
+            context: context,
+            text: "I AGREE",
+            func: () {
+              box.put("policies", policiesFromDB);
+              setState(() {
+                isPolicy = false;
+              });
+              getRestaurantInfos();
+            },
+          ),
+        ],
+      );
+    }
     if (permission2 != null && !permission2!) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -388,16 +459,19 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
   Future getRestaurantInfosAndCheckPolicies() async {
     //CheckPolicies
     Map? policies = box.get("policies");
-    Map? result = await Firestore().getPolicies(context);
-    if (result == null) {
+    policiesFromDB = await Firestore().getPolicies(context);
+    if (policiesFromDB == null) {
       setState(() {
         progress2 = true;
       });
       Funcs().showSnackBar(context, "ERROR");
       return;
-    } else if (policies == null || policies['update'] != result['update']) {
-      //eğer buraya düşerse başka bi widget yap orda kabul edip etmesin
-      //birde ödemede no refunds ekle
+    } else if (policies == null ||
+        policies['update'] != policiesFromDB!['update']) {
+      box.put("policies", policies);
+      setState(() {
+        isPolicy = true;
+      });
       return;
     }
     getRestaurantInfos();

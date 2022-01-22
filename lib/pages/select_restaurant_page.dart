@@ -202,7 +202,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
               children: [
                 TextButton(
                   onPressed: () {
-                    getPolicies("privacy");
+                    voidForPolicy("privacy");
                   },
                   child: const Text(
                     "Privacy Policy",
@@ -211,7 +211,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    getPolicies("terms");
+                    voidForPolicy("terms");
                   },
                   child: const Text(
                     "Terms and Conditions",
@@ -227,62 +227,19 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
     );
   }
 
-  Future getPolicies(String value) async {
+  Future voidForPolicy(String value) async {
     setState(() {
       progress2 = true;
     });
-    Map? result = await Firestore().getPolicies(context);
+    bool? result = await Funcs().getPolicies("terms", context);
+
+    if (result != null) {
+      canNext = false;
+    }
+
     setState(() {
       progress2 = false;
     });
-    if (result == null) {
-      canNext = false;
-      Funcs().showSnackBar(context, "ERROR PLEASE TRY AGAIN");
-      return;
-    }
-    String text = result[value].toString().replaceAll("|n", "\n\n");
-    List list = result['privacyList'];
-    SimpleUIs.showCustomDialog(
-      context: context,
-      title: value == "privacy" ? "Privacy Policy" : "Terms & Conditions",
-      content: SingleChildScrollView(
-        child: Column(
-          children: [
-            Text(
-              text,
-              style: const TextStyle(color: color4),
-            ),
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                int counter = index + 1;
-                return Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () async {
-                      if (!await launch(list[index]['link'])) {
-                        Clipboard.setData(
-                          ClipboardData(
-                            text: list[index]['link'],
-                          ),
-                        );
-                        Funcs().showSnackBar(context, "Link copied!");
-                      }
-                    },
-                    child: Text(
-                      "$counter: ${list[index]['text']}",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(color: color2),
-                    ),
-                  ),
-                );
-              },
-            )
-          ],
-        ),
-      ),
-    );
   }
 
   bool checkPermission() {

@@ -11,6 +11,9 @@ import 'package:restaurant_app/UIs/simple_uis.dart';
 import 'package:restaurant_app/colors.dart';
 import 'package:restaurant_app/models/personnel.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
+
+import 'firebase/Firestore.dart';
 
 class Funcs {
   final String url = "http://worldtimeapi.org/api/timezone/Europe/Istanbul";
@@ -212,5 +215,57 @@ class Funcs {
       id = "$id$personnelUsername";
     }
     return id;
+  }
+
+  Future<bool?> getPolicies(String value, context) async {
+    Map? result = await Firestore().getPolicies(context);
+
+    if (result == null) {
+      Funcs().showSnackBar(context, "ERROR PLEASE TRY AGAIN");
+      return false;
+    }
+    String text = result[value].toString().replaceAll("|n", "\n\n");
+    List list = result['privacyList'];
+    SimpleUIs.showCustomDialog(
+      context: context,
+      title: value == "privacy" ? "Privacy Policy" : "Terms & Conditions",
+      content: SingleChildScrollView(
+        child: Column(
+          children: [
+            Text(
+              text,
+              style: const TextStyle(color: color4),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: list.length,
+              itemBuilder: (context, index) {
+                int counter = index + 1;
+                return Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () async {
+                      if (!await launch(list[index]['link'])) {
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: list[index]['link'],
+                          ),
+                        );
+                        Funcs().showSnackBar(context, "Link copied!");
+                      }
+                    },
+                    child: Text(
+                      "$counter: ${list[index]['text']}",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(color: color2),
+                    ),
+                  ),
+                );
+              },
+            )
+          ],
+        ),
+      ),
+    );
   }
 }

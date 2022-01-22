@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:restaurant_app/colors.dart';
+import 'package:restaurant_app/firebase/Firestore.dart';
 import 'package:restaurant_app/size.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../funcs.dart';
 import 'custom_gradient_button.dart';
 
 class SimpleUIs {
@@ -231,4 +235,6 @@ class SimpleUIs {
       );
     }
   }
+
+  
 }

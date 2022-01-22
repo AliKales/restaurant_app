@@ -353,6 +353,7 @@ class _AdminPageState extends State<AdminPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const Expanded(child: SizedBox.shrink()),
           Text(
             paymentForMoreDays
                 ? "You can pay here to get access for another 30 days."
@@ -400,6 +401,14 @@ class _AdminPageState extends State<AdminPage> {
             ),
             progress3,
           ),
+          const Expanded(child: SizedBox.shrink()),
+          Text(
+            "Once you pay, there's no refund!",
+            style: Theme.of(context)
+                .textTheme
+                .subtitle1!
+                .copyWith(color: color4),
+          )
         ],
       ),
     );

@@ -231,10 +231,12 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
     setState(() {
       progress2 = true;
     });
-    bool? result = await Funcs().getPolicies("terms", context);
+    bool? result = await Funcs().getPolicies(value, context);
 
     if (result != null) {
       canNext = false;
+    }else{
+      canNext=true;
     }
 
     setState(() {
@@ -247,7 +249,7 @@ class _SelectRestaurantPageState extends State<SelectRestaurantPage> {
       return true;
     } else {
       Funcs().showSnackBar(context,
-          'FIRST YOU HAVE TO READ THE "PRIVACY POLICY" and "Terms & Conditions"');
+          'First you have to read the "Privacy Policy" and "Terms & Conditions"');
       return false;
     }
   }

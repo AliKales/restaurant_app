@@ -408,7 +408,8 @@ class _AdminPageState extends State<AdminPage> {
                 .textTheme
                 .subtitle1!
                 .copyWith(color: color4),
-          )
+          ),
+          SimpleUIs.emptyWidget(height: 5),
         ],
       ),
     );

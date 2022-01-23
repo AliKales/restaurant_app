@@ -42,6 +42,8 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
 
   bool permission1 = false;
 
+  bool canNext = true;
+
   bool isPolicy = false;
 
   ///* [permission2] is for version check
@@ -220,7 +222,11 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                     });
                     bool? result =
                         await Funcs().getPolicies("privacy", context);
-                    if (result != null) {}
+                    if (result != null) {
+                      canNext = false;
+                    } else {
+                      canNext = true;
+                    }
                     setState(() {
                       progress3 = false;
                     });
@@ -236,6 +242,11 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
                       progress3 = true;
                     });
                     bool? result = await Funcs().getPolicies("terms", context);
+                    if (result != null) {
+                      canNext = false;
+                    } else {
+                      canNext = true;
+                    }
                     setState(() {
                       progress3 = false;
                     });
@@ -253,6 +264,11 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
             context: context,
             text: "I AGREE",
             func: () {
+              if (!canNext) {
+                Funcs().showSnackBar(context,
+                    'First you have to read the "Privacy Policy" and "Terms & Conditions"');
+                return;
+              }
               box.put("policies", policiesFromDB);
               setState(() {
                 isPolicy = false;
@@ -457,6 +473,9 @@ class _PersonelManagerPageState extends State<PersonelManagerPage>
 
   //FUNCTIONSSSSSSSSSSSSSSSSSSSSSSS
   Future getRestaurantInfosAndCheckPolicies() async {
+    setState(() {
+      progress2 = false;
+    });
     //CheckPolicies
     Map? policies = box.get("policies");
     policiesFromDB = await Firestore().getPolicies(context);
